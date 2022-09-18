@@ -70,7 +70,7 @@ impl Dialectric {
         let r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
         let r0 = r0 * r0;
 
-        return r0 + (1.0 - r0) * (1.0 - cosine).powi(5);
+        return r0 + (1.0 - r0) * (1.0 - cosine).powf(5.0);
     }
 }
 
@@ -87,15 +87,15 @@ impl Material for Dialectric {
         let cos_theta = rec.normal.dot(-unit_direction).min(1.0);
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
-        let can_refract = refraction_ratio * sin_theta < 1.0;
+        let cannot_refract = refraction_ratio * sin_theta > 1.0;
 
         let mut rng = rand::thread_rng();
 
         let direction =
-            if can_refract || Dialectric::reflectance(cos_theta, refraction_ratio) < rng.gen() {
-                refract(unit_direction, rec.normal, refraction_ratio)
-            } else {
+            if cannot_refract || Dialectric::reflectance(cos_theta, refraction_ratio) > rng.gen() {
                 unit_direction.reflect(rec.normal)
+            } else {
+                refract(unit_direction, rec.normal, refraction_ratio)
             };
 
         let scattered = Ray {

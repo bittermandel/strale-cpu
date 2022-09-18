@@ -1,6 +1,6 @@
 use std::ops::*;
 
-use rand::Rng;
+use rand::{thread_rng, Rng};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Vec3 {
@@ -36,13 +36,37 @@ impl Vec3 {
         return self.e[0] * v.e[0] + self.e[1] * v.e[1] + self.e[2] * v.e[2];
     }
 
-    pub fn near_zero(self) -> bool {
+    pub fn near_zero(&self) -> bool {
         let s = 1e-8;
         return self.e[0].abs() < s && self.e[1].abs() < s && self.e[1].abs() < s;
     }
 
     pub fn reflect(self, normal: Vec3) -> Vec3 {
         return self - (2.0 * self.dot(normal)) * normal;
+    }
+
+    pub fn cross(&self, v: Vec3) -> Vec3 {
+        return Vec3::new(
+            self.e[1] * v.e[2] - self.e[2] * v.e[1],
+            self.e[2] * v.e[0] - self.e[0] * v.e[2],
+            self.e[0] * v.e[1] - self.e[1] * v.e[0],
+        );
+    }
+
+    pub fn random() -> Vec3 {
+        let mut rng = thread_rng();
+
+        return Vec3::new(rng.gen(), rng.gen(), rng.gen());
+    }
+
+    pub fn random_from(min: f32, max: f32) -> Vec3 {
+        let mut rng = thread_rng();
+
+        return Vec3::new(
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+        );
     }
 }
 
@@ -181,4 +205,16 @@ pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f32) -> Vec3 {
     let r_out_perp = etai_over_etat * (uv + cos_theta * n);
     let r_out_parallel = -(1.0 - r_out_perp.length_squared()).abs().sqrt() * n;
     return r_out_perp + r_out_parallel;
+}
+
+pub fn random_in_unit_disk() -> Vec3 {
+    let mut rng = thread_rng();
+
+    loop {
+        let p = Vec3::new(rng.gen::<f32>(), rng.gen::<f32>(), 0.0);
+        if p.length_squared() >= 1.0 {
+            continue;
+        };
+        return p;
+    }
 }
