@@ -1,3 +1,5 @@
+use rand::{thread_rng, Rng};
+
 use crate::{
     ray::Ray,
     util::degrees_to_radians,
@@ -13,6 +15,8 @@ pub struct Camera {
     pub v: Vec3,
     pub w: Vec3,
     pub lens_radius: f32,
+    pub _time0: f32,
+    pub _time1: f32,
 }
 
 impl Camera {
@@ -52,6 +56,8 @@ impl Camera {
             u,
             v,
             lens_radius,
+            _time0: 0.0,
+            _time1: 0.0,
         };
     }
 
@@ -59,11 +65,14 @@ impl Camera {
         let rd = self.lens_radius * random_in_unit_disk();
         let offset = self.u * rd.x() + self.v * rd.y();
 
+        let rng = thread_rng();
+
         return Ray {
             origin: self.origin + offset,
             direction: self.lower_left_corner + s * self.horizontal + t * self.vertical
                 - self.origin
                 - offset,
+            time: rng.gen(),
         };
     }
 }

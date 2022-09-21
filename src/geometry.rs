@@ -8,6 +8,14 @@ use crate::{
 
 pub enum Geometry {
     Sphere(Vec3, f32, Arc<dyn Material>),
+    MovingSphere {
+        center0: Vec3,
+        center1: Vec3,
+        time0: f32,
+        time1: f32,
+        radius: f32,
+        material: Arc<dyn Material>,
+    },
 }
 
 impl Geometry {
@@ -54,6 +62,14 @@ impl Geometry {
 
                 return Some((closest_hit, root));
             }
+            Geometry::MovingSphere {
+                center0,
+                center1,
+                time0,
+                time1,
+                radius,
+                material,
+            } => {}
         }
     }
 }
