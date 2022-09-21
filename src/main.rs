@@ -8,6 +8,7 @@ use ray::Ray;
 use scene::Scene;
 use vec3::{unit_vector, Vec3};
 
+mod aabb;
 mod camera;
 mod geometry;
 mod material;
@@ -16,8 +17,8 @@ mod scene;
 mod util;
 mod vec3;
 
-const MAX_DEPTH: u32 = 50;
-const SAMPLES_PER_PIXEL: u32 = 100;
+const MAX_DEPTH: u32 = 4;
+const SAMPLES_PER_PIXEL: u32 = 50;
 
 fn main() {
     let path = Path::new("image.png");
@@ -26,7 +27,7 @@ fn main() {
 
     let aspect_ratio = 3.0 / 2.0;
 
-    let image_width: u32 = 1200;
+    let image_width: u32 = 400;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
