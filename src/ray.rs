@@ -19,7 +19,7 @@ pub struct Ray {
 
 impl Ray {
     pub fn at(&self, t: f32) -> Vec3 {
-        return self.origin + self.direction * t;
+        self.origin + self.direction * t
     }
 
     pub fn hit(&self, scene: &Scene) -> Option<HitRecord> {
@@ -29,7 +29,7 @@ impl Ray {
         let objects = scene.objects();
 
         for object in objects.iter() {
-            match object.hit(&self, closest_hit_distance) {
+            match object.hit(self, closest_hit_distance) {
                 Some((rec, distance)) => {
                     closest_hit = Some(rec);
                     if distance < closest_hit_distance {
@@ -40,6 +40,6 @@ impl Ray {
             }
         }
 
-        return closest_hit;
+        closest_hit
     }
 }

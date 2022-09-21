@@ -29,7 +29,7 @@ impl Scene {
     }
 
     pub fn objects(&self) -> &Vec<Geometry> {
-        return &self.objects;
+        &self.objects
     }
 
     pub fn random_scene() -> Scene {

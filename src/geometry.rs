@@ -28,7 +28,7 @@ impl Geometry {
                 time1,
                 radius: _,
                 material: _,
-            } => return *center0 + ((time - time0) / (time1 - time0)) * (*center1 - *center0),
+            } => *center0 + ((time - time0) / (time1 - time0)) * (*center1 - *center0),
             Geometry::Sphere(_, _, _) => todo!(),
         }
     }
@@ -72,7 +72,7 @@ impl Geometry {
                     material: material.clone(),
                 };
 
-                return Some((closest_hit, root));
+                Some((closest_hit, root))
             }
             Geometry::MovingSphere {
                 center0: _,
@@ -118,7 +118,7 @@ impl Geometry {
                     material: material.clone(),
                 };
 
-                return Some((closest_hit, root));
+                Some((closest_hit, root))
             }
         }
     }
