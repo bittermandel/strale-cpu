@@ -19,6 +19,20 @@ pub enum Geometry {
 }
 
 impl Geometry {
+    fn center(&self, time: f32) -> Vec3 {
+        match self {
+            Geometry::MovingSphere {
+                center0,
+                center1,
+                time0,
+                time1,
+                radius: _,
+                material: _,
+            } => *center0 + ((time - time0) / (time1 - time0)) * (*center1 - *center0),
+            Geometry::Sphere(_, _, _) => todo!(),
+        }
+    }
+
     pub fn hit(&self, ray: &Ray, closest_hit_distance: f32) -> Option<(HitRecord, f32)> {
         match self {
             Geometry::Sphere(position, radius, material) => {
@@ -45,10 +59,8 @@ impl Geometry {
 
                 let outward_normal = (ray.at(root) - *position) / *radius;
                 let front_face = ray.direction.dot(outward_normal) < 0.0;
-                let mut normal: Vec3 = Vec3::new(0.0, 0.0, 0.0);
-                if front_face {
-                    normal = outward_normal;
-                } else {
+                let mut normal = outward_normal;
+                if !front_face {
                     normal = -outward_normal;
                 }
 
@@ -60,16 +72,54 @@ impl Geometry {
                     material: material.clone(),
                 };
 
-                return Some((closest_hit, root));
+                Some((closest_hit, root))
             }
             Geometry::MovingSphere {
-                center0,
-                center1,
-                time0,
-                time1,
+                center0: _,
+                center1: _,
+                time0: _,
+                time1: _,
                 radius,
                 material,
-            } => {}
+            } => {
+                let oc = ray.origin - self.center(ray.time);
+
+                let a = ray.direction.length_squared();
+                let half_b = oc.dot(ray.direction);
+                let c = oc.length_squared() - radius * radius;
+                let discriminant = half_b * half_b - a * c;
+
+                if discriminant < 0.0 {
+                    return None;
+                }
+
+                let sqrtd = discriminant.sqrt();
+
+                let mut root = (-half_b - sqrtd) / a;
+                if root < 0.001 || root > closest_hit_distance {
+                    root = (-half_b + sqrtd) / a;
+                    if root < 0.001 || root > closest_hit_distance {
+                        return None;
+                    }
+                }
+
+                let outward_normal = (ray.at(root) - self.center(ray.time)) / *radius;
+                let front_face = ray.direction.dot(outward_normal) < 0.0;
+                let mut normal = outward_normal;
+                if !front_face {
+                    normal = -outward_normal;
+                }
+
+                let closest_hit = HitRecord {
+                    t: root,
+                    p: ray.at(root),
+                    normal,
+                    front_face,
+                    material: material.clone(),
+                };
+
+                Some((closest_hit, root))
+            }
         }
     }
 }

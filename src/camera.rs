@@ -47,7 +47,7 @@ impl Camera {
 
         let lens_radius = aperture / 2.0;
 
-        return Camera {
+        Camera {
             origin,
             lower_left_corner,
             horizontal,
@@ -57,22 +57,22 @@ impl Camera {
             v,
             lens_radius,
             _time0: 0.0,
-            _time1: 0.0,
-        };
+            _time1: 1.0,
+        }
     }
 
     pub fn get_ray(&self, s: f32, t: f32) -> Ray {
         let rd = self.lens_radius * random_in_unit_disk();
         let offset = self.u * rd.x() + self.v * rd.y();
 
-        let rng = thread_rng();
+        let mut rng = thread_rng();
 
-        return Ray {
+        Ray {
             origin: self.origin + offset,
             direction: self.lower_left_corner + s * self.horizontal + t * self.vertical
                 - self.origin
                 - offset,
             time: rng.gen(),
-        };
+        }
     }
 }

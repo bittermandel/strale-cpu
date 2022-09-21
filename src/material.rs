@@ -27,12 +27,13 @@ impl Material for Lambertian {
         let scattered = Ray {
             direction: scatter_direction,
             origin: rec.p,
+            time: ray.time,
         };
-        return Ok((self.albedo, scattered));
+        Ok((self.albedo, scattered))
     }
 
     fn attenuation(&self) -> Vec3 {
-        return self.albedo;
+        self.albedo
     }
 }
 
@@ -48,6 +49,7 @@ impl Material for Metal {
         let scattered = Ray {
             direction: reflected + self.fuzz * random_in_unit_sphere(),
             origin: rec.p,
+            time: ray.time,
         };
         if scattered.direction.dot(rec.normal) > 0.0 {
             Ok((self.albedo, scattered))
@@ -57,7 +59,7 @@ impl Material for Metal {
     }
 
     fn attenuation(&self) -> Vec3 {
-        return self.albedo;
+        self.albedo
     }
 }
 
@@ -70,7 +72,7 @@ impl Dialectric {
         let r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
         let r0 = r0 * r0;
 
-        return r0 + (1.0 - r0) * (1.0 - cosine).powf(5.0);
+        r0 + (1.0 - r0) * (1.0 - cosine).powf(5.0)
     }
 }
 
@@ -101,6 +103,7 @@ impl Material for Dialectric {
         let scattered = Ray {
             direction,
             origin: rec.p,
+            time: ray.time,
         };
         {
             Ok((self.attenuation(), scattered))
@@ -108,6 +111,6 @@ impl Material for Dialectric {
     }
 
     fn attenuation(&self) -> Vec3 {
-        return Vec3::new(1.0, 1.0, 1.0);
+        Vec3::new(1.0, 1.0, 1.0)
     }
 }
