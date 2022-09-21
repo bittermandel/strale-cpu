@@ -1,10 +1,8 @@
 use rayon::prelude::*;
-use std::{fs::File, io::BufWriter, path::Path, sync::Arc, vec};
+use std::{fs::File, io::BufWriter, path::Path, vec};
 
 use camera::Camera;
-use geometry::Geometry;
 use indicatif::ProgressBar;
-use material::{Dialectric, Lambertian, Metal};
 use rand::Rng;
 use ray::Ray;
 use scene::Scene;
@@ -24,7 +22,7 @@ const SAMPLES_PER_PIXEL: u32 = 100;
 fn main() {
     let path = Path::new("image.png");
     let file = File::create(path).unwrap();
-    let ref mut w = BufWriter::new(file);
+    let w = BufWriter::new(file);
 
     let aspect_ratio = 3.0 / 2.0;
 
@@ -104,7 +102,7 @@ fn main() {
 }
 
 fn ray_color(scene: &Scene, r: &Ray, depth: u32) -> Vec3 {
-    if depth <= 0 {
+    if depth == 0 {
         return Vec3::new(0.0, 0.0, 0.0);
     }
     let hit_record = r.hit(scene);
@@ -113,15 +111,16 @@ fn ray_color(scene: &Scene, r: &Ray, depth: u32) -> Vec3 {
             let scattered = t.material.scatter(r, &t);
             match scattered {
                 Ok(scattered_ray) => {
-                    return scattered_ray.0 * ray_color(scene, &scattered_ray.1, depth - 1)
+                    scattered_ray.0 * ray_color(scene, &scattered_ray.1, depth - 1)
                 }
-                Err(_) => return Vec3::new(0.0, 0.0, 0.0),
+                Err(_) => Vec3::new(0.0, 0.0, 0.0),
             }
         }
         _ => {
             let unit_direction: Vec3 = unit_vector(r.direction);
             let t = 0.5 * (unit_direction.y() + 1.0);
-            return Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + t * Vec3::new(0.5, 0.7, 1.0);
+
+            Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + t * Vec3::new(0.5, 0.7, 1.0)
         }
     }
 }

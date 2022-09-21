@@ -26,8 +26,8 @@ impl Geometry {
                 center1,
                 time0,
                 time1,
-                radius,
-                material,
+                radius: _,
+                material: _,
             } => return *center0 + ((time - time0) / (time1 - time0)) * (*center1 - *center0),
             Geometry::Sphere(_, _, _) => todo!(),
         }
@@ -59,10 +59,8 @@ impl Geometry {
 
                 let outward_normal = (ray.at(root) - *position) / *radius;
                 let front_face = ray.direction.dot(outward_normal) < 0.0;
-                let mut normal: Vec3 = Vec3::new(0.0, 0.0, 0.0);
-                if front_face {
-                    normal = outward_normal;
-                } else {
+                let mut normal = outward_normal;
+                if !front_face {
                     normal = -outward_normal;
                 }
 
@@ -77,10 +75,10 @@ impl Geometry {
                 return Some((closest_hit, root));
             }
             Geometry::MovingSphere {
-                center0,
-                center1,
-                time0,
-                time1,
+                center0: _,
+                center1: _,
+                time0: _,
+                time1: _,
                 radius,
                 material,
             } => {
@@ -107,10 +105,8 @@ impl Geometry {
 
                 let outward_normal = (ray.at(root) - self.center(ray.time)) / *radius;
                 let front_face = ray.direction.dot(outward_normal) < 0.0;
-                let mut normal: Vec3 = Vec3::new(0.0, 0.0, 0.0);
-                if front_face {
-                    normal = outward_normal;
-                } else {
+                let mut normal = outward_normal;
+                if !front_face {
                     normal = -outward_normal;
                 }
 

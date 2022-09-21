@@ -96,13 +96,13 @@ impl Sub for Vec3 {
     type Output = Vec3;
 
     fn sub(self, other: Vec3) -> Vec3 {
-        return Vec3 {
+        Vec3 {
             e: [
                 self.e[0] - other.e[0],
                 self.e[1] - other.e[1],
                 self.e[2] - other.e[2],
             ],
-        };
+        }
     }
 }
 
@@ -191,6 +191,7 @@ pub fn random_unit_vector() -> Vec3 {
     return unit_vector(random_in_unit_sphere());
 }
 
+#[allow(dead_code)]
 pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
     let in_unit_sphere = random_in_unit_sphere();
     if in_unit_sphere.dot(normal) > 0.0 {
