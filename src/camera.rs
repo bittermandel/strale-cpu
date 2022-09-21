@@ -57,7 +57,7 @@ impl Camera {
             v,
             lens_radius,
             _time0: 0.0,
-            _time1: 0.0,
+            _time1: 1.0,
         };
     }
 
@@ -65,7 +65,7 @@ impl Camera {
         let rd = self.lens_radius * random_in_unit_disk();
         let offset = self.u * rd.x() + self.v * rd.y();
 
-        let rng = thread_rng();
+        let mut rng = thread_rng();
 
         return Ray {
             origin: self.origin + offset,

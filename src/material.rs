@@ -27,6 +27,7 @@ impl Material for Lambertian {
         let scattered = Ray {
             direction: scatter_direction,
             origin: rec.p,
+            time: ray.time,
         };
         return Ok((self.albedo, scattered));
     }
@@ -48,6 +49,7 @@ impl Material for Metal {
         let scattered = Ray {
             direction: reflected + self.fuzz * random_in_unit_sphere(),
             origin: rec.p,
+            time: ray.time,
         };
         if scattered.direction.dot(rec.normal) > 0.0 {
             Ok((self.albedo, scattered))
@@ -101,6 +103,7 @@ impl Material for Dialectric {
         let scattered = Ray {
             direction,
             origin: rec.p,
+            time: ray.time,
         };
         {
             Ok((self.attenuation(), scattered))

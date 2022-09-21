@@ -10,3 +10,6 @@ indicatif = "0.17.0"
 png = "0.17"
 rand = "0.8.5"
 rayon = "1.5"
+
+[profile.bench]
+debug = true

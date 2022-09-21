@@ -18,7 +18,7 @@ mod scene;
 mod util;
 mod vec3;
 
-const MAX_DEPTH: u32 = 4;
+const MAX_DEPTH: u32 = 50;
 const SAMPLES_PER_PIXEL: u32 = 100;
 
 fn main() {
