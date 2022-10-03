@@ -26,15 +26,13 @@ impl Ray {
         let mut closest_hit_distance: f32 = f32::MAX;
         let mut closest_hit: Option<HitRecord> = None;
 
-        let objects = scene.objects();
-
-        for object in objects.iter() {
-            match object.hit(self, closest_hit_distance) {
-                Some((rec, distance)) => {
-                    closest_hit = Some(rec);
-                    if distance < closest_hit_distance {
-                        closest_hit_distance = distance;
+        for object in scene.objects.iter() {
+            match object.hit(self, 0.001, closest_hit_distance) {
+                Some(rec) => {
+                    if rec.t < closest_hit_distance {
+                        closest_hit_distance = rec.t;
                     }
+                    closest_hit = Some(rec);
                 }
                 None => continue,
             }

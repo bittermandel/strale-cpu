@@ -3,24 +3,27 @@ use std::sync::Arc;
 use rand::{thread_rng, Rng};
 
 use crate::{
-    geometry::Geometry,
+    aabb::AABB,
+    bvh::BVH,
+    geometry::{MovingSphere, Sphere},
+    hittable::Hittable,
     material::{Dialectric, Lambertian, Metal},
     vec3::Vec3,
 };
 
 pub struct Scene {
-    pub objects: Vec<Geometry>,
+    pub objects: Vec<Box<dyn Hittable>>,
 }
 
 impl Scene {
     #[allow(dead_code)]
-    pub fn new(objects: Vec<Geometry>) -> Scene {
-        Scene { objects }
+    pub fn new() -> Scene {
+        Scene { objects: vec![] }
     }
 
     #[allow(dead_code)]
-    pub fn add(&mut self, object: Geometry) {
-        self.objects.push(object);
+    pub fn set(&mut self, objects: Vec<Box<dyn Hittable>>) {
+        self.objects = objects;
     }
 
     #[allow(dead_code)]
@@ -28,21 +31,42 @@ impl Scene {
         self.objects.clear()
     }
 
-    pub fn objects(&self) -> &Vec<Geometry> {
-        &self.objects
+    pub fn bounding_box(&self, time0: f32, time1: f32) -> Option<AABB> {
+        if self.objects.is_empty() {
+            return None;
+        }
+
+        let mut output_box: Option<AABB> = None;
+
+        let mut temp_box: Option<AABB> = None;
+        let mut first_box = true;
+
+        for object in &self.objects {
+            temp_box = object.bounding_box(time0, time1);
+            if temp_box.is_none() {
+                return None;
+            }
+            if first_box {
+                output_box = temp_box;
+            }
+            first_box = false;
+        }
+
+        output_box
     }
 
-    pub fn random_scene() -> Scene {
-        let mut objects: Vec<Geometry> = vec![];
-
+    pub fn randomize(&mut self) -> &mut Self {
         let ground_material = Arc::new(Lambertian {
             albedo: Vec3::new(0.5, 0.5, 0.5),
         });
-        objects.push(Geometry::Sphere(
-            Vec3::new(0.0, -1000.0, 0.0),
-            1000.0,
-            ground_material,
-        ));
+
+        let mut objects: Vec<Box<dyn Hittable>> = vec![];
+
+        objects.push(Box::new(Sphere {
+            position: Vec3::new(0.0, -1000.0, 0.0),
+            radius: 1000.0,
+            material: ground_material,
+        }));
 
         let mut rng = thread_rng();
 
@@ -61,56 +85,59 @@ impl Scene {
                         // diffuse
                         let albedo = Vec3::random() * Vec3::random();
                         let center2 = center + Vec3::new(0.0, rng.gen(), 0.0);
-                        objects.push(Geometry::MovingSphere {
+                        objects.push(Box::new(MovingSphere {
                             center0: center,
                             center1: center2,
                             time0: 0.0,
                             time1: 1.0,
                             radius: 0.2,
                             material: Arc::new(Lambertian { albedo }),
-                        });
+                        }));
                     } else if choose_mat < 0.95 {
                         // metal
                         let albedo = Vec3::random_from(0.5, 1.0);
                         let fuzz: f32 = rng.gen_range(0.0..0.5);
-                        objects.push(Geometry::Sphere(
-                            center,
-                            0.2,
-                            Arc::new(Metal { albedo, fuzz }),
-                        ));
+                        objects.push(Box::new(Sphere {
+                            position: center,
+                            radius: 0.2,
+                            material: Arc::new(Metal { albedo, fuzz }),
+                        }));
                     } else {
                         // glass
-                        objects.push(Geometry::Sphere(
-                            center,
-                            0.2,
-                            Arc::new(Dialectric { ir: 1.5 }),
-                        ));
+                        objects.push(Box::new(Sphere {
+                            position: center,
+                            radius: 0.2,
+                            material: Arc::new(Dialectric { ir: 1.5 }),
+                        }));
                     }
                 }
             }
         }
 
-        objects.push(Geometry::Sphere(
-            Vec3::new(0.0, 1.0, 0.0),
-            1.0,
-            Arc::new(Dialectric { ir: 1.5 }),
-        ));
-        objects.push(Geometry::Sphere(
-            Vec3::new(-4.0, 1.0, 0.0),
-            1.0,
-            Arc::new(Lambertian {
+        objects.push(Box::new(Sphere {
+            position: Vec3::new(0.0, 1.0, 0.0),
+            radius: 1.0,
+            material: Arc::new(Dialectric { ir: 1.5 }),
+        }));
+        objects.push(Box::new(Sphere {
+            position: Vec3::new(-4.0, 1.0, 0.0),
+            radius: 1.0,
+            material: Arc::new(Lambertian {
                 albedo: Vec3::new(0.4, 0.2, 0.1),
             }),
-        ));
-        objects.push(Geometry::Sphere(
-            Vec3::new(4.0, 1.0, 0.0),
-            1.0,
-            Arc::new(Metal {
+        }));
+        objects.push(Box::new(Sphere {
+            position: Vec3::new(4.0, 1.0, 0.0),
+            radius: 1.0,
+            material: Arc::new(Metal {
                 albedo: Vec3::new(0.7, 0.6, 0.5),
                 fuzz: 0.0,
             }),
-        ));
+        }));
 
-        Scene { objects }
+        self.objects.push(Box::new(BVH::new(objects, 0.0, 1.0)));
+        //self.objects.append(&mut objects);
+
+        self
     }
 }

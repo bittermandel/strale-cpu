@@ -9,16 +9,18 @@ use scene::Scene;
 use vec3::{unit_vector, Vec3};
 
 mod aabb;
+mod bvh;
 mod camera;
 mod geometry;
+mod hittable;
 mod material;
 mod ray;
 mod scene;
 mod util;
 mod vec3;
 
-const MAX_DEPTH: u32 = 4;
-const SAMPLES_PER_PIXEL: u32 = 50;
+const MAX_DEPTH: u32 = 8;
+const SAMPLES_PER_PIXEL: u32 = 100;
 
 fn main() {
     let path = Path::new("image.png");
@@ -27,10 +29,10 @@ fn main() {
 
     let aspect_ratio = 3.0 / 2.0;
 
-    let image_width: u32 = 400;
+    let image_width: u32 = 1080;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
-    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
+    let lookfrom = Vec3::new(23.0, 2.0, 3.0);
     let lookat = Vec3::new(0.0, 0.0, 0.0);
 
     let camera = Camera::new(
@@ -54,7 +56,8 @@ fn main() {
 
     let bar = ProgressBar::new(image_height as u64);
 
-    let scene = Scene::random_scene();
+    let mut scene = Scene::new();
+    scene.randomize();
 
     let mut pixelvecs: Vec<Vec<Vec3>> = vec![];
 

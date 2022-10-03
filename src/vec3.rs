@@ -68,6 +68,22 @@ impl Vec3 {
             rng.gen_range(min..max),
         )
     }
+
+    pub fn min(self, other: Self) -> Self {
+        return Vec3::new(
+            self.x().min(other.x()),
+            self.y().min(other.y()),
+            self.z().min(other.z()),
+        );
+    }
+
+    pub fn max(self, other: Self) -> Self {
+        return Vec3::new(
+            self.x().max(other.x()),
+            self.y().max(other.y()),
+            self.z().max(other.z()),
+        );
+    }
 }
 
 impl Add for Vec3 {
@@ -154,6 +170,16 @@ impl Div<f32> for Vec3 {
     fn div(self, t: f32) -> Vec3 {
         Vec3 {
             e: [self.e[0] / t, self.e[1] / t, self.e[2] / t],
+        }
+    }
+}
+
+impl Div<Vec3> for f32 {
+    type Output = Vec3;
+
+    fn div(self, v: Vec3) -> Vec3 {
+        Vec3 {
+            e: [self / v.e[0], self / v.e[1], self / v.e[2]],
         }
     }
 }
