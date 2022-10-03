@@ -1,4 +1,4 @@
-use crate::vec3::Vec3;
+use glam::Vec3;
 
 pub trait Texture {
     fn value(&self, u: f32, v: f32, p: Vec3) -> Vec3;
@@ -30,15 +30,15 @@ pub struct CheckerTexture {
 impl CheckerTexture {
     pub fn new_from_colors(c1: Vec3, c2: Vec3) -> Self {
         Self {
-            even: Box::new(SolidColor::new(c1.x(), c1.y(), c1.z())),
-            odd: Box::new(SolidColor::new(c2.x(), c2.y(), c2.z())),
+            even: Box::new(SolidColor::new(c1.x, c1.y, c1.z)),
+            odd: Box::new(SolidColor::new(c2.x, c2.y, c2.z)),
         }
     }
 }
 
 impl Texture for CheckerTexture {
     fn value(&self, u: f32, v: f32, p: Vec3) -> Vec3 {
-        let sines = (10.0 * p.x()).sin() * (10.0 * p.y()).sin() * (10.0 * p.z()).sin();
+        let sines = (10.0 * p.x).sin() * (10.0 * p.y).sin() * (10.0 * p.z).sin();
         if sines < 0.0 {
             self.odd.value(u, v, p)
         } else {
@@ -56,15 +56,15 @@ impl TightCheckerTexture {
     #[allow(dead_code)]
     pub fn new_from_colors(c1: Vec3, c2: Vec3) -> Self {
         Self {
-            even: Box::new(SolidColor::new(c1.x(), c1.y(), c1.z())),
-            odd: Box::new(SolidColor::new(c2.x(), c2.y(), c2.z())),
+            even: Box::new(SolidColor::new(c1.x, c1.y, c1.z)),
+            odd: Box::new(SolidColor::new(c2.x, c2.y, c2.z)),
         }
     }
 }
 
 impl Texture for TightCheckerTexture {
     fn value(&self, u: f32, v: f32, p: Vec3) -> Vec3 {
-        let sines = (100.0 * p.x()).sin() * (100.0 * p.y()).sin() * (100.0 * p.z()).sin();
+        let sines = (100.0 * p.x).sin() * (100.0 * p.y).sin() * (100.0 * p.z).sin();
         if sines < 0.0 {
             self.odd.value(u, v, p)
         } else {

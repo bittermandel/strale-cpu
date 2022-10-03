@@ -27,8 +27,8 @@ impl Bvh {
                 let a_bbox = a.bounding_box(time0, time1);
                 let b_bbox = b.bounding_box(time0, time1);
                 if let (Some(a), Some(b)) = (a_bbox, b_bbox) {
-                    let ac = a.minimum.e[axis] + a.maximum.e[axis];
-                    let bc = b.minimum.e[axis] + b.maximum.e[axis];
+                    let ac = a.minimum[axis] + a.maximum[axis];
+                    let bc = b.minimum[axis] + b.maximum[axis];
                     ac.partial_cmp(&bc).unwrap()
                 } else {
                     panic!("no bounding box in bvh node")
@@ -41,10 +41,7 @@ impl Bvh {
                 .iter()
                 .fold((f32::MAX, f32::MIN), |(bmin, bmax), hit| {
                     if let Some(aabb) = hit.bounding_box(time0, time1) {
-                        (
-                            bmin.min(aabb.minimum.e[axis]),
-                            bmax.max(aabb.maximum.e[axis]),
-                        )
+                        (bmin.min(aabb.minimum[axis]), bmax.max(aabb.maximum[axis]))
                     } else {
                         (bmin, bmax)
                     }

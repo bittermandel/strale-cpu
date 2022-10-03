@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use crate::{material::Material, scene::Scene, vec3::Vec3};
+use glam::Vec3;
+
+use crate::{material::Material, scene::Scene};
 
 #[derive(Clone)]
 pub struct HitRecord {

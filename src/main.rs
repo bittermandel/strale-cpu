@@ -1,3 +1,4 @@
+use glam::Vec3;
 use rayon::prelude::*;
 use std::{fs::File, io::BufWriter, path::Path, vec};
 
@@ -6,7 +7,7 @@ use indicatif::ProgressBar;
 use rand::Rng;
 use ray::Ray;
 use scene::Scene;
-use vec3::{unit_vector, Vec3};
+use vec3::unit_vector;
 
 mod aabb;
 mod bvh;
@@ -30,7 +31,7 @@ fn main() {
 
     let aspect_ratio = 3.0 / 2.0;
 
-    let image_width: u32 = 1440;
+    let image_width: u32 = 1080;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);
@@ -96,9 +97,9 @@ fn main() {
 
     for pixelvec in pixelvecs {
         for pixel in pixelvec {
-            data.push((255.99 * (pixel.x()).sqrt().clamp(0.0, 0.999)) as u8);
-            data.push((255.99 * (pixel.y()).sqrt().clamp(0.0, 0.999)) as u8);
-            data.push((255.99 * (pixel.z()).sqrt().clamp(0.0, 0.999)) as u8);
+            data.push((255.99 * (pixel.x).sqrt().clamp(0.0, 0.999)) as u8);
+            data.push((255.99 * (pixel.y).sqrt().clamp(0.0, 0.999)) as u8);
+            data.push((255.99 * (pixel.z).sqrt().clamp(0.0, 0.999)) as u8);
         }
     }
     bar.finish();
@@ -122,8 +123,8 @@ fn ray_color(scene: &Scene, r: &Ray, depth: u32) -> Vec3 {
             }
         }
         _ => {
-            let unit_direction: Vec3 = unit_vector(r.direction);
-            let t = 0.5 * (unit_direction.y() + 1.0);
+            let unit_direction = unit_vector(r.direction);
+            let t = 0.5 * (unit_direction.y + 1.0);
 
             Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + t * Vec3::new(0.5, 0.7, 1.0)
 

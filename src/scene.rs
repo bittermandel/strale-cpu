@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use glam::Vec3;
 use rand::{thread_rng, Rng};
 
 use crate::{
@@ -9,7 +10,6 @@ use crate::{
     hittable::Hittable,
     material::{Dialectric, Lambertian, Metal},
     texture::{CheckerTexture, SolidColor},
-    vec3::Vec3,
 };
 
 pub struct Scene {
@@ -86,8 +86,9 @@ impl Scene {
                 if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                     if choose_mat < 0.8 {
                         // diffuse
-                        let albedo = Vec3::random() * Vec3::random();
-                        let texture = Box::new(SolidColor::new(albedo.x(), albedo.y(), albedo.z()));
+                        let albedo = Vec3::new(rng.gen(), rng.gen(), rng.gen())
+                            * Vec3::new(rng.gen(), rng.gen(), rng.gen());
+                        let texture = Box::new(SolidColor::new(albedo.x, albedo.y, albedo.z));
                         objects.push(Box::new(Sphere {
                             position: center,
                             radius: 0.2,
@@ -95,7 +96,11 @@ impl Scene {
                         }));
                     } else if choose_mat < 0.95 {
                         // metal
-                        let albedo = Vec3::random_from(0.5, 1.0);
+                        let albedo = Vec3::new(
+                            rng.gen_range(0.5..1.0),
+                            rng.gen_range(0.5..1.0),
+                            rng.gen_range(0.5..1.0),
+                        );
                         let fuzz: f32 = rng.gen_range(0.0..0.5);
                         objects.push(Box::new(Sphere {
                             position: center,

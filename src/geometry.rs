@@ -1,11 +1,12 @@
 use std::{f32::consts::PI, sync::Arc};
 
+use glam::Vec3;
+
 use crate::{
     aabb::AABB,
     hittable::Hittable,
     material::Material,
     ray::{HitRecord, Ray},
-    vec3::Vec3,
 };
 
 pub struct Sphere {
@@ -16,8 +17,8 @@ pub struct Sphere {
 
 impl Sphere {
     pub fn get_sphere_uv(p: Vec3) -> (f32, f32) {
-        let theta = -p.y().acos();
-        let phi = -p.z().atan2(p.x()) + PI;
+        let theta = -p.y.acos();
+        let phi = -p.z.atan2(p.x) + PI;
 
         (phi / (2.0 * PI), theta / PI)
     }
