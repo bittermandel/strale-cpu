@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{f32::consts::PI, sync::Arc};
 
 use crate::{
     aabb::AABB,
@@ -12,6 +12,15 @@ pub struct Sphere {
     pub position: Vec3,
     pub radius: f32,
     pub material: Arc<dyn Material>,
+}
+
+impl Sphere {
+    pub fn get_sphere_uv(p: Vec3) -> (f32, f32) {
+        let theta = -p.y().acos();
+        let phi = -p.z().atan2(p.x()) + PI;
+
+        return (phi / (2.0 * PI), theta / PI);
+    }
 }
 
 impl Hittable for Sphere {
@@ -44,10 +53,14 @@ impl Hittable for Sphere {
             normal = -outward_normal;
         }
 
+        let uv_coords = Sphere::get_sphere_uv(outward_normal);
+
         let closest_hit = HitRecord {
             t: root,
             p: ray.at(root),
             normal,
+            u: uv_coords.0,
+            v: uv_coords.1,
             front_face,
             material: self.material.clone(),
         };
@@ -108,10 +121,14 @@ impl Hittable for MovingSphere {
             normal = -outward_normal;
         }
 
+        let uv_coords = Sphere::get_sphere_uv(outward_normal);
+
         let closest_hit = HitRecord {
             t: root,
             p: ray.at(root),
             normal,
+            u: uv_coords.0,
+            v: uv_coords.1,
             front_face,
             material: self.material.clone(),
         };

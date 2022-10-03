@@ -16,6 +16,7 @@ mod hittable;
 mod material;
 mod ray;
 mod scene;
+mod texture;
 mod util;
 mod vec3;
 
@@ -125,6 +126,15 @@ fn ray_color(scene: &Scene, r: &Ray, depth: u32) -> Vec3 {
             let t = 0.5 * (unit_direction.y() + 1.0);
 
             Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + t * Vec3::new(0.5, 0.7, 1.0)
+
+            /*let tex = TightCheckerTexture::new_from_colors(
+                Vec3::new(0.2, 0.3, 0.1),
+                Vec3::new(0.9, 0.9, 0.9),
+            );
+
+            let uv = Sphere::get_sphere_uv(unit_vector(r.direction));
+
+            tex.value(uv.0, uv.1, unit_vector(r.direction))*/
         }
     }
 }

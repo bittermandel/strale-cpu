@@ -8,6 +8,7 @@ use crate::{
     geometry::{MovingSphere, Sphere},
     hittable::Hittable,
     material::{Dialectric, Lambertian, Metal},
+    texture::{CheckerTexture, SolidColor, Texture},
     vec3::Vec3,
 };
 
@@ -57,7 +58,10 @@ impl Scene {
 
     pub fn randomize(&mut self) -> &mut Self {
         let ground_material = Arc::new(Lambertian {
-            albedo: Vec3::new(0.5, 0.5, 0.5),
+            albedo: Box::new(CheckerTexture::new_from_colors(
+                Vec3::new(0.2, 0.3, 0.1),
+                Vec3::new(0.9, 0.9, 0.9),
+            )),
         });
 
         let mut objects: Vec<Box<dyn Hittable>> = vec![];
@@ -84,6 +88,7 @@ impl Scene {
                     if choose_mat < 0.8 {
                         // diffuse
                         let albedo = Vec3::random() * Vec3::random();
+                        let texture = Box::new(SolidColor::new(albedo.x(), albedo.y(), albedo.z()));
                         let center2 = center + Vec3::new(0.0, rng.gen(), 0.0);
                         objects.push(Box::new(MovingSphere {
                             center0: center,
@@ -91,7 +96,7 @@ impl Scene {
                             time0: 0.0,
                             time1: 1.0,
                             radius: 0.2,
-                            material: Arc::new(Lambertian { albedo }),
+                            material: Arc::new(Lambertian { albedo: texture }),
                         }));
                     } else if choose_mat < 0.95 {
                         // metal
@@ -123,7 +128,7 @@ impl Scene {
             position: Vec3::new(-4.0, 1.0, 0.0),
             radius: 1.0,
             material: Arc::new(Lambertian {
-                albedo: Vec3::new(0.4, 0.2, 0.1),
+                albedo: Box::new(SolidColor::new(0.4, 0.2, 0.1)),
             }),
         }));
         objects.push(Box::new(Sphere {
