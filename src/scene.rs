@@ -5,7 +5,7 @@ use rand::{thread_rng, Rng};
 use crate::{
     aabb::AABB,
     bvh::Bvh,
-    geometry::{MovingSphere, Sphere},
+    geometry::Sphere,
     hittable::Hittable,
     material::{Dialectric, Lambertian, Metal},
     texture::{CheckerTexture, SolidColor},
@@ -88,12 +88,8 @@ impl Scene {
                         // diffuse
                         let albedo = Vec3::random() * Vec3::random();
                         let texture = Box::new(SolidColor::new(albedo.x(), albedo.y(), albedo.z()));
-                        let center2 = center + Vec3::new(0.0, rng.gen(), 0.0);
-                        objects.push(Box::new(MovingSphere {
-                            center0: center,
-                            center1: center2,
-                            time0: 0.0,
-                            time1: 1.0,
+                        objects.push(Box::new(Sphere {
+                            position: center,
                             radius: 0.2,
                             material: Arc::new(Lambertian { albedo: texture }),
                         }));
@@ -140,7 +136,6 @@ impl Scene {
         }));
 
         self.objects.push(Box::new(Bvh::new(objects, 0.0, 1.0)));
-        //self.objects.append(&mut objects);
 
         self
     }

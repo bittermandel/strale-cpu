@@ -33,7 +33,7 @@ fn main() {
     let image_width: u32 = 1440;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
-    let lookfrom = Vec3::new(23.0, 2.0, 3.0);
+    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
     let lookat = Vec3::new(0.0, 0.0, 0.0);
 
     let camera = Camera::new(
@@ -42,7 +42,7 @@ fn main() {
         Vec3::new(0.0, 1.0, 0.0),
         20.0,
         aspect_ratio,
-        1.6,
+        0.1,
         10.0,
     );
 
