@@ -2,7 +2,7 @@ use rand::Rng;
 
 use crate::{
     ray::{HitRecord, Ray},
-    texture::{self, Texture},
+    texture::Texture,
     vec3::{random_in_unit_sphere, random_unit_vector, refract, unit_vector, Vec3},
 };
 

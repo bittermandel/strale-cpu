@@ -19,7 +19,7 @@ impl Sphere {
         let theta = -p.y().acos();
         let phi = -p.z().atan2(p.x()) + PI;
 
-        return (phi / (2.0 * PI), theta / PI);
+        (phi / (2.0 * PI), theta / PI)
     }
 }
 
@@ -67,7 +67,7 @@ impl Hittable for Sphere {
 
         Some(closest_hit)
     }
-    fn bounding_box(&self, time0: f32, time1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _time0: f32, _time1: f32) -> Option<AABB> {
         Some(AABB {
             minimum: self.position - Vec3::new(self.radius, self.radius, self.radius),
             maximum: self.position + Vec3::new(self.radius, self.radius, self.radius),
@@ -107,9 +107,9 @@ impl Hittable for MovingSphere {
         let sqrtd = discriminant.sqrt();
 
         let mut root = (-half_b - sqrtd) / a;
-        if root < t_min || root > t_min {
+        if root < t_min || root > t_max {
             root = (-half_b + sqrtd) / a;
-            if root < t_min || root > t_min {
+            if root < t_min || root > t_max {
                 return None;
             }
         }

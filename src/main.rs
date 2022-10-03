@@ -20,7 +20,7 @@ mod texture;
 mod util;
 mod vec3;
 
-const MAX_DEPTH: u32 = 8;
+const MAX_DEPTH: u32 = 16;
 const SAMPLES_PER_PIXEL: u32 = 100;
 
 fn main() {
@@ -30,7 +30,7 @@ fn main() {
 
     let aspect_ratio = 3.0 / 2.0;
 
-    let image_width: u32 = 1080;
+    let image_width: u32 = 1440;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let lookfrom = Vec3::new(23.0, 2.0, 3.0);
@@ -42,7 +42,7 @@ fn main() {
         Vec3::new(0.0, 1.0, 0.0),
         20.0,
         aspect_ratio,
-        0.1,
+        1.6,
         10.0,
     );
 

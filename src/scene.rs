@@ -4,11 +4,11 @@ use rand::{thread_rng, Rng};
 
 use crate::{
     aabb::AABB,
-    bvh::BVH,
+    bvh::Bvh,
     geometry::{MovingSphere, Sphere},
     hittable::Hittable,
     material::{Dialectric, Lambertian, Metal},
-    texture::{CheckerTexture, SolidColor, Texture},
+    texture::{CheckerTexture, SolidColor},
     vec3::Vec3,
 };
 
@@ -32,21 +32,20 @@ impl Scene {
         self.objects.clear()
     }
 
+    #[allow(dead_code)]
     pub fn bounding_box(&self, time0: f32, time1: f32) -> Option<AABB> {
         if self.objects.is_empty() {
             return None;
         }
 
         let mut output_box: Option<AABB> = None;
-
-        let mut temp_box: Option<AABB> = None;
         let mut first_box = true;
 
         for object in &self.objects {
-            temp_box = object.bounding_box(time0, time1);
-            if temp_box.is_none() {
-                return None;
-            }
+            let temp_box = object.bounding_box(time0, time1);
+
+            temp_box?;
+
             if first_box {
                 output_box = temp_box;
             }
@@ -140,7 +139,7 @@ impl Scene {
             }),
         }));
 
-        self.objects.push(Box::new(BVH::new(objects, 0.0, 1.0)));
+        self.objects.push(Box::new(Bvh::new(objects, 0.0, 1.0)));
         //self.objects.append(&mut objects);
 
         self

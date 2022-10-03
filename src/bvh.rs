@@ -6,17 +6,17 @@ use crate::{
     ray::{HitRecord, Ray},
 };
 
-enum BVHNode {
-    Branch { left: Box<BVH>, right: Box<BVH> },
+enum BvhNode {
+    Branch { left: Box<Bvh>, right: Box<Bvh> },
     Leaf(Box<dyn Hittable>),
 }
 
-pub struct BVH {
-    tree: BVHNode,
+pub struct Bvh {
+    tree: BvhNode,
     bbox: AABB,
 }
 
-impl BVH {
+impl Bvh {
     pub fn new(mut objects: Vec<Box<dyn Hittable>>, time0: f32, time1: f32) -> Self {
         fn box_compare(
             time0: f32,
@@ -36,12 +36,7 @@ impl BVH {
             }
         }
 
-        fn axis_range(
-            objects: &Vec<Box<dyn Hittable>>,
-            time0: f32,
-            time1: f32,
-            axis: usize,
-        ) -> f32 {
+        fn axis_range(objects: &[Box<dyn Hittable>], time0: f32, time1: f32, axis: usize) -> f32 {
             let (min, max) = objects
                 .iter()
                 .fold((f32::MAX, f32::MIN), |(bmin, bmax), hit| {
@@ -73,8 +68,8 @@ impl BVH {
             1 => {
                 let leaf = objects.pop().unwrap();
                 if let Some(bbox) = leaf.bounding_box(time0, time1) {
-                    BVH {
-                        tree: BVHNode::Leaf(leaf),
+                    Bvh {
+                        tree: BvhNode::Leaf(leaf),
                         bbox,
                     }
                 } else {
@@ -82,11 +77,11 @@ impl BVH {
                 }
             }
             _ => {
-                let right = BVH::new(objects.drain(len / 2..).collect(), time0, time1);
-                let left = BVH::new(objects, time0, time1);
+                let right = Bvh::new(objects.drain(len / 2..).collect(), time0, time1);
+                let left = Bvh::new(objects, time0, time1);
                 let bbox = AABB::surrounding_box(&left.bbox, &right.bbox);
-                BVH {
-                    tree: BVHNode::Branch {
+                Bvh {
+                    tree: BvhNode::Branch {
                         left: Box::new(left),
                         right: Box::new(right),
                     },
@@ -97,20 +92,20 @@ impl BVH {
     }
 }
 
-impl Hittable for BVH {
+impl Hittable for Bvh {
     fn hit(&self, r: &Ray, t_min: f32, mut t_max: f32) -> Option<HitRecord> {
         if !self.bbox.hit(r, t_min, t_max) {
             return None;
         }
 
         match &self.tree {
-            BVHNode::Leaf(leaf) => leaf.hit(&r, t_min, t_max),
-            BVHNode::Branch { left, right } => {
-                let left = left.hit(&r, t_min, t_max);
+            BvhNode::Leaf(leaf) => leaf.hit(r, t_min, t_max),
+            BvhNode::Branch { left, right } => {
+                let left = left.hit(r, t_min, t_max);
                 if let Some(hit) = &left {
                     t_max = hit.t;
                 };
-                let right = right.hit(&r, t_min, t_max);
+                let right = right.hit(r, t_min, t_max);
                 if right.is_some() {
                     right
                 } else {
