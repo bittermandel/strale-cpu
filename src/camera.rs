@@ -1,4 +1,4 @@
-use glam::Vec3;
+use glam::Vec3A;
 use rand::{thread_rng, Rng};
 
 use crate::{
@@ -8,13 +8,13 @@ use crate::{
 };
 
 pub struct Camera {
-    pub origin: Vec3,
-    pub lower_left_corner: Vec3,
-    pub horizontal: Vec3,
-    pub vertical: Vec3,
-    pub u: Vec3,
-    pub v: Vec3,
-    pub w: Vec3,
+    pub origin: Vec3A,
+    pub lower_left_corner: Vec3A,
+    pub horizontal: Vec3A,
+    pub vertical: Vec3A,
+    pub u: Vec3A,
+    pub v: Vec3A,
+    pub w: Vec3A,
     pub lens_radius: f32,
     pub _time0: f32,
     pub _time1: f32,
@@ -22,9 +22,9 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(
-        lookfrom: Vec3,
-        lookat: Vec3,
-        vup: Vec3,
+        lookfrom: Vec3A,
+        lookat: Vec3A,
+        vup: Vec3A,
         vfov: f32,
         aspect_ratio: f32,
         aperture: f32,

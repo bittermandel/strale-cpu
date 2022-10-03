@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use glam::Vec3;
+use glam::Vec3A;
 
 use crate::{material::Material, scene::Scene};
 
 #[derive(Clone)]
 pub struct HitRecord {
-    pub p: Vec3,
-    pub normal: Vec3,
+    pub p: Vec3A,
+    pub normal: Vec3A,
     pub t: f32,
     pub u: f32,
     pub v: f32,
@@ -16,13 +16,13 @@ pub struct HitRecord {
 }
 
 pub struct Ray {
-    pub origin: Vec3,
-    pub direction: Vec3,
+    pub origin: Vec3A,
+    pub direction: Vec3A,
     pub time: f32,
 }
 
 impl Ray {
-    pub fn at(&self, t: f32) -> Vec3 {
+    pub fn at(&self, t: f32) -> Vec3A {
         self.origin + self.direction * t
     }
 

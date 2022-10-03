@@ -1,6 +1,6 @@
 use std::{f32::consts::PI, sync::Arc};
 
-use glam::Vec3;
+use glam::Vec3A;
 
 use crate::{
     aabb::AABB,
@@ -10,13 +10,13 @@ use crate::{
 };
 
 pub struct Sphere {
-    pub position: Vec3,
+    pub position: Vec3A,
     pub radius: f32,
     pub material: Arc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn get_sphere_uv(p: Vec3) -> (f32, f32) {
+    pub fn get_sphere_uv(p: Vec3A) -> (f32, f32) {
         let theta = -p.y.acos();
         let phi = -p.z.atan2(p.x) + PI;
 
@@ -70,15 +70,15 @@ impl Hittable for Sphere {
     }
     fn bounding_box(&self, _time0: f32, _time1: f32) -> Option<AABB> {
         Some(AABB {
-            minimum: self.position - Vec3::new(self.radius, self.radius, self.radius),
-            maximum: self.position + Vec3::new(self.radius, self.radius, self.radius),
+            minimum: self.position - Vec3A::new(self.radius, self.radius, self.radius),
+            maximum: self.position + Vec3A::new(self.radius, self.radius, self.radius),
         })
     }
 }
 
 pub struct MovingSphere {
-    pub center0: Vec3,
-    pub center1: Vec3,
+    pub center0: Vec3A,
+    pub center1: Vec3A,
     pub time0: f32,
     pub time1: f32,
     pub radius: f32,
@@ -86,7 +86,7 @@ pub struct MovingSphere {
 }
 
 impl MovingSphere {
-    fn center(&self, time: f32) -> Vec3 {
+    fn center(&self, time: f32) -> Vec3A {
         self.center0
             + ((time - self.time0) / (self.time1 - self.time0)) * (self.center1 - self.center0)
     }
@@ -139,12 +139,12 @@ impl Hittable for MovingSphere {
 
     fn bounding_box(&self, _time0: f32, _time1: f32) -> Option<AABB> {
         let box0 = AABB::new(
-            self.center(_time0) - Vec3::new(self.radius, self.radius, self.radius),
-            self.center(_time0) + Vec3::new(self.radius, self.radius, self.radius),
+            self.center(_time0) - Vec3A::new(self.radius, self.radius, self.radius),
+            self.center(_time0) + Vec3A::new(self.radius, self.radius, self.radius),
         );
         let box1 = AABB::new(
-            self.center(_time1) - Vec3::new(self.radius, self.radius, self.radius),
-            self.center(_time1) + Vec3::new(self.radius, self.radius, self.radius),
+            self.center(_time1) - Vec3A::new(self.radius, self.radius, self.radius),
+            self.center(_time1) + Vec3A::new(self.radius, self.radius, self.radius),
         );
 
         Some(AABB::surrounding_box(&box0, &box1))

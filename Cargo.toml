@@ -12,5 +12,13 @@ png = "0.17"
 rand = "0.8.5"
 rayon = "1.5"
 
+[features]
+bench = []
+
+[profile.release]
+lto = true
+codegen-units = 1
+
 [profile.bench]
-debug = true
+lto = true
+codegen-units = 1

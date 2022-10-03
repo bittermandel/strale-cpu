@@ -1,6 +1,9 @@
-use glam::Vec3;
+#![cfg_attr(feature = "bench", feature(test))]
+
+use bvh::Bvh;
+use glam::Vec3A;
 use rayon::prelude::*;
-use std::{fs::File, io::BufWriter, path::Path, vec};
+use std::{fs::File, io::BufWriter, path::Path, time::Instant, vec};
 
 use camera::Camera;
 use indicatif::ProgressBar;
@@ -21,8 +24,14 @@ mod texture;
 mod util;
 mod vec3;
 
-const MAX_DEPTH: u32 = 16;
-const SAMPLES_PER_PIXEL: u32 = 100;
+#[cfg(all(feature = "bench", test))]
+extern crate test;
+
+#[cfg(test)]
+mod tests;
+
+const MAX_DEPTH: u32 = 50;
+const SAMPLES_PER_PIXEL: u32 = 128;
 
 fn main() {
     let path = Path::new("image.png");
@@ -31,16 +40,16 @@ fn main() {
 
     let aspect_ratio = 3.0 / 2.0;
 
-    let image_width: u32 = 1080;
+    let image_width: u32 = 800;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
-    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
-    let lookat = Vec3::new(0.0, 0.0, 0.0);
+    let lookfrom = Vec3A::new(13.0, 2.0, 3.0);
+    let lookat = Vec3A::new(0.0, 0.0, 0.0);
 
     let camera = Camera::new(
         lookfrom,
         lookat,
-        Vec3::new(0.0, 1.0, 0.0),
+        Vec3A::new(0.0, 1.0, 0.0),
         20.0,
         aspect_ratio,
         0.1,
@@ -56,26 +65,31 @@ fn main() {
 
     let mut data: Vec<u8> = vec![];
 
-    let bar = ProgressBar::new(image_height as u64);
+    let bar = ProgressBar::new((image_height * image_width * SAMPLES_PER_PIXEL).into());
 
     let mut scene = Scene::new();
     scene.randomize();
 
-    let mut pixelvecs: Vec<Vec<Vec3>> = vec![];
+    scene.objects = vec![Box::new(Bvh::new(scene.objects, 0.0, f32::MAX))];
+
+    let mut pixelvecs: Vec<Vec<Vec3A>> = vec![];
+
+    let now = Instant::now();
 
     (0..image_height)
         .into_par_iter()
         .rev()
         .map(|j| {
-            bar.inc(1);
-            let pixels: Vec<Vec3> = (0..image_width)
+            let pixels: Vec<Vec3A> = (0..image_width)
                 .into_par_iter()
                 .map(|i| {
-                    let mut pixel_color = Vec3::new(0.0, 0.0, 0.0);
+                    let mut pixel_color = Vec3A::new(0.0, 0.0, 0.0);
 
                     let mut rng = rand::thread_rng();
 
                     for _ in 0..SAMPLES_PER_PIXEL {
+                        bar.inc(1);
+
                         let u = (i as f32 + rng.gen::<f32>()) / (image_width - 1) as f32;
                         let v = (j as f32 + rng.gen::<f32>()) / (image_height - 1) as f32;
 
@@ -95,6 +109,8 @@ fn main() {
         })
         .collect_into_vec(&mut pixelvecs);
 
+    println!("{}", bar.per_sec());
+
     for pixelvec in pixelvecs {
         for pixel in pixelvec {
             data.push((255.99 * (pixel.x).sqrt().clamp(0.0, 0.999)) as u8);
@@ -107,9 +123,9 @@ fn main() {
     writer.write_image_data(&data).unwrap();
 }
 
-fn ray_color(scene: &Scene, r: &Ray, depth: u32) -> Vec3 {
+fn ray_color(scene: &Scene, r: &Ray, depth: u32) -> Vec3A {
     if depth == 0 {
-        return Vec3::new(0.0, 0.0, 0.0);
+        return Vec3A::new(0.0, 0.0, 0.0);
     }
     let hit_record = r.hit(scene);
     match hit_record {
@@ -119,18 +135,18 @@ fn ray_color(scene: &Scene, r: &Ray, depth: u32) -> Vec3 {
                 Ok(scattered_ray) => {
                     scattered_ray.0 * ray_color(scene, &scattered_ray.1, depth - 1)
                 }
-                Err(_) => Vec3::new(0.0, 0.0, 0.0),
+                Err(_) => Vec3A::new(0.0, 0.0, 0.0),
             }
         }
         _ => {
             let unit_direction = unit_vector(r.direction);
             let t = 0.5 * (unit_direction.y + 1.0);
 
-            Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + t * Vec3::new(0.5, 0.7, 1.0)
+            Vec3A::new(1.0, 1.0, 1.0) * (1.0 - t) + t * Vec3A::new(0.5, 0.7, 1.0)
 
             /*let tex = TightCheckerTexture::new_from_colors(
-                Vec3::new(0.2, 0.3, 0.1),
-                Vec3::new(0.9, 0.9, 0.9),
+                Vec3A::new(0.2, 0.3, 0.1),
+                Vec3A::new(0.9, 0.9, 0.9),
             );
 
             let uv = Sphere::get_sphere_uv(unit_vector(r.direction));

@@ -1,17 +1,17 @@
-use glam::Vec3;
+use glam::Vec3A;
 
 use crate::ray::Ray;
 
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Clone, Copy)]
 pub struct AABB {
-    pub minimum: Vec3,
-    pub maximum: Vec3,
+    pub minimum: Vec3A,
+    pub maximum: Vec3A,
 }
 #[warn(clippy::upper_case_acronyms)]
 
 impl AABB {
-    pub fn new(a: Vec3, b: Vec3) -> Self {
+    pub fn new(a: Vec3A, b: Vec3A) -> Self {
         Self {
             minimum: a,
             maximum: b,
@@ -39,12 +39,12 @@ impl AABB {
     #[warn(clippy::upper_case_acronyms)]
 
     pub fn surrounding_box(box0: &AABB, box1: &AABB) -> AABB {
-        let small = Vec3::new(
+        let small = Vec3A::new(
             box0.minimum.x.min(box1.minimum.x),
             box0.minimum.y.min(box1.minimum.y),
             box0.minimum.z.min(box1.minimum.z),
         );
-        let big = Vec3::new(
+        let big = Vec3A::new(
             box0.maximum.x.max(box1.maximum.x),
             box0.maximum.y.max(box1.maximum.y),
             box0.maximum.z.max(box1.maximum.z),
