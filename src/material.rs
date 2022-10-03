@@ -2,17 +2,16 @@ use rand::Rng;
 
 use crate::{
     ray::{HitRecord, Ray},
+    texture::Texture,
     vec3::{random_in_unit_sphere, random_unit_vector, refract, unit_vector, Vec3},
 };
 
 pub trait Material: Send + Sync {
     fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Result<(Vec3, Ray), ()>;
-
-    fn attenuation(&self) -> Vec3;
 }
 
 pub struct Lambertian {
-    pub albedo: Vec3,
+    pub albedo: Box<dyn Texture + Send + Sync>,
 }
 
 impl Material for Lambertian {
@@ -29,11 +28,7 @@ impl Material for Lambertian {
             origin: rec.p,
             time: ray.time,
         };
-        Ok((self.albedo, scattered))
-    }
-
-    fn attenuation(&self) -> Vec3 {
-        self.albedo
+        Ok((self.albedo.value(rec.u, rec.v, rec.p), scattered))
     }
 }
 
@@ -56,10 +51,6 @@ impl Material for Metal {
         } else {
             Err(())
         }
-    }
-
-    fn attenuation(&self) -> Vec3 {
-        self.albedo
     }
 }
 
@@ -106,11 +97,7 @@ impl Material for Dialectric {
             time: ray.time,
         };
         {
-            Ok((self.attenuation(), scattered))
+            Ok((Vec3::new(1.0, 1.0, 1.0), scattered))
         }
-    }
-
-    fn attenuation(&self) -> Vec3 {
-        Vec3::new(1.0, 1.0, 1.0)
     }
 }

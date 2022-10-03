@@ -8,15 +8,19 @@ use ray::Ray;
 use scene::Scene;
 use vec3::{unit_vector, Vec3};
 
+mod aabb;
+mod bvh;
 mod camera;
 mod geometry;
+mod hittable;
 mod material;
 mod ray;
 mod scene;
+mod texture;
 mod util;
 mod vec3;
 
-const MAX_DEPTH: u32 = 50;
+const MAX_DEPTH: u32 = 16;
 const SAMPLES_PER_PIXEL: u32 = 100;
 
 fn main() {
@@ -26,10 +30,10 @@ fn main() {
 
     let aspect_ratio = 3.0 / 2.0;
 
-    let image_width: u32 = 1200;
+    let image_width: u32 = 1440;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
-    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
+    let lookfrom = Vec3::new(23.0, 2.0, 3.0);
     let lookat = Vec3::new(0.0, 0.0, 0.0);
 
     let camera = Camera::new(
@@ -38,7 +42,7 @@ fn main() {
         Vec3::new(0.0, 1.0, 0.0),
         20.0,
         aspect_ratio,
-        0.1,
+        1.6,
         10.0,
     );
 
@@ -53,7 +57,8 @@ fn main() {
 
     let bar = ProgressBar::new(image_height as u64);
 
-    let scene = Scene::random_scene();
+    let mut scene = Scene::new();
+    scene.randomize();
 
     let mut pixelvecs: Vec<Vec<Vec3>> = vec![];
 
@@ -121,6 +126,15 @@ fn ray_color(scene: &Scene, r: &Ray, depth: u32) -> Vec3 {
             let t = 0.5 * (unit_direction.y() + 1.0);
 
             Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + t * Vec3::new(0.5, 0.7, 1.0)
+
+            /*let tex = TightCheckerTexture::new_from_colors(
+                Vec3::new(0.2, 0.3, 0.1),
+                Vec3::new(0.9, 0.9, 0.9),
+            );
+
+            let uv = Sphere::get_sphere_uv(unit_vector(r.direction));
+
+            tex.value(uv.0, uv.1, unit_vector(r.direction))*/
         }
     }
 }
