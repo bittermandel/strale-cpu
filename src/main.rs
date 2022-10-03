@@ -18,6 +18,7 @@ mod camera;
 mod geometry;
 mod hittable;
 mod material;
+mod perlin;
 mod ray;
 mod scene;
 mod texture;
@@ -30,8 +31,8 @@ extern crate test;
 #[cfg(test)]
 mod tests;
 
-const MAX_DEPTH: u32 = 50;
-const SAMPLES_PER_PIXEL: u32 = 128;
+const MAX_DEPTH: u32 = 16;
+const SAMPLES_PER_PIXEL: u32 = 100;
 
 fn main() {
     let path = Path::new("image.png");
@@ -73,8 +74,6 @@ fn main() {
     scene.objects = vec![Box::new(Bvh::new(scene.objects, 0.0, f32::MAX))];
 
     let mut pixelvecs: Vec<Vec<Vec3A>> = vec![];
-
-    let now = Instant::now();
 
     (0..image_height)
         .into_par_iter()

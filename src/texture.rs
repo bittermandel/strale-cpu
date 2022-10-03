@@ -1,4 +1,6 @@
-use glam::Vec3A;
+use glam::{Vec3, Vec3A};
+
+use crate::perlin::Perlin;
 
 pub trait Texture {
     fn value(&self, u: f32, v: f32, p: Vec3A) -> Vec3A;
@@ -70,5 +72,23 @@ impl Texture for TightCheckerTexture {
         } else {
             self.even.value(u, v, p)
         }
+    }
+}
+
+pub struct NoiseTexture {
+    noise: Perlin,
+}
+
+impl NoiseTexture {
+    pub fn new() -> Self {
+        Self {
+            noise: Perlin::new(),
+        }
+    }
+}
+
+impl Texture for NoiseTexture {
+    fn value(&self, u: f32, v: f32, p: Vec3A) -> Vec3A {
+        return Vec3A::new(1.0, 1.0, 1.0) * self.noise.noise(p);
     }
 }

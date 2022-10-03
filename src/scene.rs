@@ -9,7 +9,7 @@ use crate::{
     geometry::Sphere,
     hittable::Hittable,
     material::{Dialectric, Lambertian, Metal},
-    texture::{CheckerTexture, SolidColor},
+    texture::{CheckerTexture, NoiseTexture, SolidColor},
 };
 
 pub struct Scene {
@@ -56,11 +56,14 @@ impl Scene {
     }
 
     pub fn randomize(&mut self) -> &mut Self {
-        let ground_material = Arc::new(Lambertian {
+        /*let ground_material = Arc::new(Lambertian {
             albedo: Box::new(CheckerTexture::new_from_colors(
                 Vec3A::new(0.2, 0.3, 0.1),
                 Vec3A::new(0.9, 0.9, 0.9),
             )),
+        });*/
+        let ground_material = Arc::new(Lambertian {
+            albedo: Box::new(NoiseTexture::new()),
         });
 
         let mut objects: Vec<Box<dyn Hittable>> = vec![];
