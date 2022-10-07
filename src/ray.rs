@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use glam::Vec3A;
 
-use crate::{material::Material, scene::Scene};
+use crate::{hittable::Hittable, material::Material, scene::Scene};
 
 #[derive(Clone)]
 pub struct HitRecord {
@@ -26,11 +26,11 @@ impl Ray {
         self.origin + self.direction * t
     }
 
-    pub fn hit(&self, scene: &Scene) -> Option<HitRecord> {
+    pub fn hit(&self, objects: Vec<&Box<dyn Hittable>>) -> Option<HitRecord> {
         let mut closest_hit_distance: f32 = f32::MAX;
         let mut closest_hit: Option<HitRecord> = None;
 
-        for object in scene.objects.iter() {
+        for object in objects.iter() {
             match object.hit(self, 0.001, closest_hit_distance) {
                 Some(rec) => {
                     if rec.t < closest_hit_distance {

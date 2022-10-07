@@ -1,9 +1,18 @@
 #![cfg_attr(feature = "bench", feature(test))]
 
 use bvh::Bvh;
+use bvh2::BVH;
 use glam::Vec3A;
 use rayon::prelude::*;
-use std::{fs::File, io::BufWriter, path::Path, time::Instant, vec};
+use std::{
+    char::MAX,
+    fs::File,
+    io::BufWriter,
+    path::Path,
+    thread::sleep_ms,
+    time::{Duration, Instant},
+    vec,
+};
 
 use camera::Camera;
 use indicatif::ProgressBar;
@@ -14,6 +23,7 @@ use vec3::unit_vector;
 
 mod aabb;
 mod bvh;
+mod bvh2;
 mod camera;
 mod geometry;
 mod hittable;
@@ -41,11 +51,16 @@ fn main() {
 
     let aspect_ratio = 3.0 / 2.0;
 
-    let image_width: u32 = 800;
+    let image_width: u32 = 1080;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let lookfrom = Vec3A::new(13.0, 2.0, 3.0);
     let lookat = Vec3A::new(0.0, 0.0, 0.0);
+
+    println!(
+        "Configuration:\ndepth: {}, samples: {}, image_size:{}x{}",
+        MAX_DEPTH, SAMPLES_PER_PIXEL, image_width, image_height
+    );
 
     let camera = Camera::new(
         lookfrom,
@@ -71,9 +86,12 @@ fn main() {
     let mut scene = Scene::new();
     scene.randomize();
 
-    scene.objects = vec![Box::new(Bvh::new(scene.objects, 0.0, f32::MAX))];
+    let bvh = bvh2::BVH::build(&mut scene.objects, 0.0, f32::MAX);
+    bvh.pretty_print();
 
     let mut pixelvecs: Vec<Vec<Vec3A>> = vec![];
+
+    let now = Instant::now();
 
     (0..image_height)
         .into_par_iter()
@@ -94,7 +112,7 @@ fn main() {
 
                         let r: Ray = camera.get_ray(u, v);
 
-                        let color = ray_color(&scene, &r, MAX_DEPTH);
+                        let color = ray_color(&scene, &r, &bvh, MAX_DEPTH, f32::MAX);
                         pixel_color += color;
                     }
 
@@ -108,7 +126,7 @@ fn main() {
         })
         .collect_into_vec(&mut pixelvecs);
 
-    println!("{}", bar.per_sec());
+    println!("{} in {:?} seconds", bar.per_sec(), now.elapsed());
 
     for pixelvec in pixelvecs {
         for pixel in pixelvec {
@@ -122,17 +140,20 @@ fn main() {
     writer.write_image_data(&data).unwrap();
 }
 
-fn ray_color(scene: &Scene, r: &Ray, depth: u32) -> Vec3A {
+fn ray_color(scene: &Scene, r: &Ray, bvh: &BVH, depth: u32, t_max: f32) -> Vec3A {
     if depth == 0 {
         return Vec3A::new(0.0, 0.0, 0.0);
     }
-    let hit_record = r.hit(scene);
+
+    let shapes = bvh.traverse(r, &scene.objects, t_max);
+
+    let hit_record = r.hit(shapes);
     match hit_record {
         Some(t) => {
             let scattered = t.material.scatter(r, &t);
             match scattered {
                 Ok(scattered_ray) => {
-                    scattered_ray.0 * ray_color(scene, &scattered_ray.1, depth - 1)
+                    scattered_ray.0 * ray_color(scene, &scattered_ray.1, &bvh, depth - 1, t.t)
                 }
                 Err(_) => Vec3A::new(0.0, 0.0, 0.0),
             }

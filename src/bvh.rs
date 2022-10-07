@@ -76,7 +76,7 @@ impl Bvh {
             _ => {
                 let right = Bvh::new(objects.drain(len / 2..).collect(), time0, time1);
                 let left = Bvh::new(objects, time0, time1);
-                let bbox = AABB::surrounding_box(&left.bbox, &right.bbox);
+                let bbox = AABB::join(&left.bbox, &right.bbox);
                 Bvh {
                     tree: BvhNode::Branch {
                         left: Box::new(left),

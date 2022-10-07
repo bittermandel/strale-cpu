@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use glam::Vec3A;
-use rand::{thread_rng, Rng};
+use rand::{distributions::Alphanumeric, rngs::SmallRng, thread_rng, Rng, SeedableRng};
+use rand_seeder::Seeder;
 
 use crate::{
     aabb::AABB,
@@ -11,6 +12,15 @@ use crate::{
     material::{Dialectric, Lambertian, Metal},
     texture::{CheckerTexture, NoiseTexture, SolidColor},
 };
+
+pub fn get_seed(length: usize) -> String {
+    let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
+    std::iter::repeat(())
+        .map(|()| rng.sample(Alphanumeric))
+        .map(char::from)
+        .take(length)
+        .collect()
+}
 
 pub struct Scene {
     pub objects: Vec<Box<dyn Hittable>>,
@@ -74,10 +84,14 @@ impl Scene {
             material: ground_material,
         }));
 
-        let mut rng = thread_rng();
+        let seed = get_seed(32);
 
-        for a in -111..111 {
-            for b in -111..111 {
+        //let mut rng: SmallRng = Seeder::from(seed.clone()).make_rng();
+        let mut rng: SmallRng = Seeder::from("D4en7gYSdsaaOzPd58BfTa79ugWvcEm5").make_rng();
+        println!("{}", seed);
+
+        for a in -11..11 {
+            for b in -11..11 {
                 let choose_mat: f32 = rng.gen::<f32>();
 
                 let center = Vec3A::new(
