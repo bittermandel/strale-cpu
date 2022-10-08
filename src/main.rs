@@ -1,16 +1,14 @@
 #![cfg_attr(feature = "bench", feature(test))]
 
-use bvh::Bvh;
+
 use bvh2::BVH;
 use glam::Vec3A;
 use rayon::prelude::*;
 use std::{
-    char::MAX,
     fs::File,
     io::BufWriter,
     path::Path,
-    thread::sleep_ms,
-    time::{Duration, Instant},
+    time::{Instant},
     vec,
 };
 
@@ -151,7 +149,7 @@ fn ray_color(scene: &Scene, r: &Ray, bvh: &BVH, depth: u32) -> Vec3A {
             let scattered = t.material.scatter(r, &t);
             match scattered {
                 Ok(scattered_ray) => {
-                    scattered_ray.0 * ray_color(scene, &scattered_ray.1, &bvh, depth - 1)
+                    scattered_ray.0 * ray_color(scene, &scattered_ray.1, bvh, depth - 1)
                 }
                 Err(_) => Vec3A::new(0.0, 0.0, 0.0),
             }

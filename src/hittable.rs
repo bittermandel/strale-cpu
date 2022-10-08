@@ -1,6 +1,5 @@
 use crate::{
     aabb::AABB,
-    bvh2::BVHNode,
     ray::{HitRecord, Ray},
 };
 

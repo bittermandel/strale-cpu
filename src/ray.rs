@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use glam::Vec3A;
 
-use crate::{aabb::AABB, hittable::Hittable, material::Material, scene::Scene};
+use crate::{aabb::AABB, hittable::Hittable, material::Material};
 
 #[derive(Clone)]
 pub struct HitRecord {

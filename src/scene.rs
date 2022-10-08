@@ -6,11 +6,10 @@ use rand_seeder::Seeder;
 
 use crate::{
     aabb::AABB,
-    bvh::Bvh,
     geometry::Sphere,
     hittable::Hittable,
     material::{Dialectric, Lambertian, Metal},
-    texture::{CheckerTexture, NoiseTexture, SolidColor},
+    texture::{NoiseTexture, SolidColor},
 };
 
 pub fn get_seed(length: usize) -> String {
@@ -43,7 +42,7 @@ impl Scene {
     }
 
     #[allow(dead_code)]
-    pub fn bounding_box(&self, time0: f32, time1: f32) -> Option<AABB> {
+    pub fn bounding_box(&self, _time0: f32, _time1: f32) -> Option<AABB> {
         if self.objects.is_empty() {
             return None;
         }

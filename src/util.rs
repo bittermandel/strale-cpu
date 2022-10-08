@@ -1,6 +1,6 @@
-use std::{cmp::Ordering, f32::consts::PI};
+use std::{f32::consts::PI};
 
-use glam::Vec3;
+
 
 use crate::{aabb::AABB, hittable::Hittable};
 
@@ -15,7 +15,7 @@ pub fn joint_aabb(indices: &[usize], shapes: &Vec<Box<dyn Hittable>>) -> AABB {
         aabb.join_mut(&shapes[*index].bounding_box().unwrap());
     }
 
-    return aabb;
+    aabb
 }
 
 pub fn joint_aabb_from_shapes(shapes: &Vec<Box<dyn Hittable>>) -> AABB {
@@ -25,5 +25,5 @@ pub fn joint_aabb_from_shapes(shapes: &Vec<Box<dyn Hittable>>) -> AABB {
         aabb.join_mut(&shape.bounding_box().unwrap());
     }
 
-    return aabb;
+    aabb
 }

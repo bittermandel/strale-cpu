@@ -1,4 +1,4 @@
-use glam::{Vec3, Vec3A};
+use glam::{Vec3A};
 
 use crate::perlin::Perlin;
 
@@ -88,7 +88,7 @@ impl NoiseTexture {
 }
 
 impl Texture for NoiseTexture {
-    fn value(&self, u: f32, v: f32, p: Vec3A) -> Vec3A {
-        return Vec3A::new(1.0, 1.0, 1.0) * self.noise.noise(p);
+    fn value(&self, _u: f32, _v: f32, p: Vec3A) -> Vec3A {
+        Vec3A::new(1.0, 1.0, 1.0) * self.noise.noise(p)
     }
 }

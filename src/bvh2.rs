@@ -1,10 +1,10 @@
-use std::{cmp::Ordering, time::Instant};
+use std::{cmp::Ordering};
 
 use crate::{
     aabb::AABB,
     hittable::Hittable,
-    ray::{HitRecord, Ray},
-    util::{joint_aabb, joint_aabb_from_shapes},
+    ray::{Ray},
+    util::{joint_aabb},
 };
 
 #[allow(clippy::upper_case_acronyms)]
@@ -109,7 +109,7 @@ impl BVHNode {
             child_r_aabb: joint_aabb(right_indices, shapes),
         };
 
-        return node_index;
+        node_index
     }
 
     pub fn build_sah(
@@ -118,8 +118,8 @@ impl BVHNode {
         nodes: &mut Vec<BVHNode>,
         parent_index: usize,
         depth: u32,
-        time0: f32,
-        time1: f32,
+        _time0: f32,
+        _time1: f32,
     ) -> usize {
         let len = indices.len();
 
@@ -157,7 +157,7 @@ impl BVHNode {
             child_r_aabb: joint_aabb(right_indices, shapes),
         };
 
-        return node_index;
+        node_index
     }
 
     fn traverse(r: &Ray, nodes: &[BVHNode], node_index: usize, indices: &mut Vec<usize>) {

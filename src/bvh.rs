@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, sync::Arc};
+use std::{cmp::Ordering};
 
 use crate::{
     aabb::AABB,
@@ -91,9 +91,9 @@ impl Bvh {
                 BvhNode::Branch { left, right, .. } => {
                     let padding: String = " ".repeat(depth as usize);
                     println!("{}child_l", padding);
-                    print_node(&left, depth + 1);
+                    print_node(left, depth + 1);
                     println!("{}child_r", padding);
-                    print_node(&right, depth + 1);
+                    print_node(right, depth + 1);
                 }
                 BvhNode::Leaf(_) => {
                     let padding: String = " ".repeat(depth as usize);

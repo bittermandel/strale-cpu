@@ -25,7 +25,7 @@ impl AABB {
         }
     }
 
-    pub fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> bool {
+    pub fn hit(&self, r: &Ray, _t_min: f32, _t_max: f32) -> bool {
         self.hit_faster(r)
     }
 
