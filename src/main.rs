@@ -13,6 +13,7 @@ use scene::Scene;
 use vec3::unit_vector;
 
 mod aabb;
+mod axis;
 mod bvh;
 mod bvh2;
 mod camera;
@@ -78,7 +79,6 @@ fn main() {
     scene.randomize();
 
     let bvh = bvh2::BVH::build(&mut scene.objects);
-    //bvh.pretty_print();
 
     let mut pixelvecs: Vec<Vec<Vec3A>> = vec![];
 

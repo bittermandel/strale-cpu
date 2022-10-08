@@ -1,6 +1,6 @@
-use glam::Vec3A;
+use glam::{Vec3, Vec3A};
 
-use crate::ray::Ray;
+use crate::{axis::Axis, ray::Ray};
 
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Clone, Copy, Debug)]
@@ -23,6 +23,14 @@ impl AABB {
             minimum: Vec3A::new(f32::INFINITY, f32::INFINITY, f32::INFINITY),
             maximum: Vec3A::new(f32::NEG_INFINITY, f32::NEG_INFINITY, f32::NEG_INFINITY),
         }
+    }
+
+    pub fn size(&self) -> Vec3A {
+        self.maximum - self.minimum
+    }
+
+    pub fn center(&self) -> Vec3A {
+        self.minimum + (self.size() / 2.0)
     }
 
     pub fn hit(&self, r: &Ray, _t_min: f32, _t_max: f32) -> bool {
@@ -60,16 +68,16 @@ impl AABB {
     }
     #[warn(clippy::upper_case_acronyms)]
 
-    pub fn join(box0: &AABB, box1: &AABB) -> AABB {
+    pub fn join(self: &AABB, box1: &AABB) -> AABB {
         let small = Vec3A::new(
-            box0.minimum.x.min(box1.minimum.x),
-            box0.minimum.y.min(box1.minimum.y),
-            box0.minimum.z.min(box1.minimum.z),
+            self.minimum.x.min(box1.minimum.x),
+            self.minimum.y.min(box1.minimum.y),
+            self.minimum.z.min(box1.minimum.z),
         );
         let big = Vec3A::new(
-            box0.maximum.x.max(box1.maximum.x),
-            box0.maximum.y.max(box1.maximum.y),
-            box0.maximum.z.max(box1.maximum.z),
+            self.maximum.x.max(box1.maximum.x),
+            self.maximum.y.max(box1.maximum.y),
+            self.maximum.z.max(box1.maximum.z),
         );
 
         AABB {
@@ -94,8 +102,48 @@ impl AABB {
         self.maximum = big;
     }
 
+    pub fn grow(&self, other: &Vec3A) -> AABB {
+        AABB::new(
+            Vec3A::new(
+                self.minimum.x.min(other.x),
+                self.minimum.y.min(other.y),
+                self.minimum.z.min(other.z),
+            ),
+            Vec3A::new(
+                self.maximum.x.max(other.x),
+                self.maximum.y.max(other.y),
+                self.maximum.z.max(other.z),
+            ),
+        )
+    }
+
+    pub fn grow_mut(&mut self, other: &Vec3A) {
+        self.minimum = Vec3A::new(
+            self.minimum.x.min(other.x),
+            self.minimum.y.min(other.y),
+            self.minimum.z.min(other.z),
+        );
+        self.maximum = Vec3A::new(
+            self.maximum.x.max(other.x),
+            self.maximum.y.max(other.y),
+            self.maximum.z.max(other.z),
+        );
+    }
+
     pub fn surface_area(&self) -> f32 {
-        let size = self.maximum - self.minimum;
-        2.0 * (size.x * size.y + size.x * size.z + size.y * size.z)
+        2.0 * (self.size().x * self.size().y
+            + self.size().x * self.size().z
+            + self.size().y * self.size().z)
+    }
+
+    pub fn largest_axis(&self) -> Axis {
+        let size = self.size();
+        if size.x > size.y && size.x > size.z {
+            Axis::X
+        } else if size.y > size.z {
+            Axis::Y
+        } else {
+            Axis::Z
+        }
     }
 }
