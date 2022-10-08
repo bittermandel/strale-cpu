@@ -53,8 +53,6 @@ impl Scene {
         for object in &self.objects {
             let temp_box = object.bounding_box();
 
-            temp_box;
-
             if first_box {
                 output_box = temp_box;
             }

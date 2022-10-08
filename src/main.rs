@@ -78,7 +78,7 @@ fn main() {
     let mut scene = Scene::new();
     scene.randomize();
 
-    let bvh = bvh2::BVH::build(&mut scene.objects);
+    let bvh = bvh2::BVH::build(&scene.objects);
 
     let mut pixelvecs: Vec<Vec<Vec3A>> = vec![];
 

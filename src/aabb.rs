@@ -1,4 +1,4 @@
-use glam::{Vec3, Vec3A};
+use glam::Vec3A;
 
 use crate::{axis::Axis, ray::Ray};
 

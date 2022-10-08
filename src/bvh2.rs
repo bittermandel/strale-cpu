@@ -272,7 +272,7 @@ impl<'a> BVH {
     pub fn build(shapes: &Vec<Box<dyn Hittable>>) -> Self {
         let now = Instant::now();
 
-        let mut indices = (0..shapes.len()).collect::<Vec<usize>>();
+        let indices = (0..shapes.len()).collect::<Vec<usize>>();
 
         let mut nodes = Vec::new();
 
