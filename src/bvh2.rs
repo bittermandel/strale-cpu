@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, time::Instant};
 
 use crate::{
-    aabb::{self, AABB},
+    aabb::AABB,
     hittable::Hittable,
     ray::Ray,
     util::{concatenate_vectors, joint_aabb},
