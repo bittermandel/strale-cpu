@@ -68,7 +68,7 @@ fn main() {
         Vec3A::new(0.0, 1.0, 0.0),
         20.0,
         aspect_ratio,
-        0.1,
+        0.01,
         10.0,
     );
 
@@ -81,13 +81,13 @@ fn main() {
 
     let mut data: Vec<u8> = vec![];
 
-    let bar = ProgressBar::new((image_height * image_width * SAMPLES_PER_PIXEL).into());
+    let bar = ProgressBar::new((image_height * image_width).into());
 
     let mut scene = Scene::new();
     scene.randomize();
 
-    let bvh = bvh2::BVH::build(&mut scene.objects, 0.0, f32::MAX);
-    bvh.pretty_print();
+    let bvh = bvh2::BVH::build(&mut scene.objects);
+    //bvh.pretty_print();
 
     let mut pixelvecs: Vec<Vec<Vec3A>> = vec![];
 
@@ -105,17 +105,15 @@ fn main() {
                     let mut rng = rand::thread_rng();
 
                     for _ in 0..SAMPLES_PER_PIXEL {
-                        bar.inc(1);
-
                         let u = (i as f32 + rng.gen::<f32>()) / (image_width - 1) as f32;
                         let v = (j as f32 + rng.gen::<f32>()) / (image_height - 1) as f32;
 
                         let r: Ray = camera.get_ray(u, v);
 
-                        let color = ray_color(&scene, &r, &bvh, MAX_DEPTH, f32::MAX);
+                        let color = ray_color(&scene, &r, &bvh, MAX_DEPTH);
                         pixel_color += color;
                     }
-
+                    bar.inc(1);
                     let scale = 1.0 / SAMPLES_PER_PIXEL as f32;
 
                     pixel_color * scale
@@ -140,12 +138,12 @@ fn main() {
     writer.write_image_data(&data).unwrap();
 }
 
-fn ray_color(scene: &Scene, r: &Ray, bvh: &BVH, depth: u32, t_max: f32) -> Vec3A {
+fn ray_color(scene: &Scene, r: &Ray, bvh: &BVH, depth: u32) -> Vec3A {
     if depth == 0 {
         return Vec3A::new(0.0, 0.0, 0.0);
     }
 
-    let shapes = bvh.traverse(r, &scene.objects, t_max);
+    let shapes = bvh.traverse(r, &scene.objects);
 
     let hit_record = r.hit(shapes);
     match hit_record {
@@ -153,7 +151,7 @@ fn ray_color(scene: &Scene, r: &Ray, bvh: &BVH, depth: u32, t_max: f32) -> Vec3A
             let scattered = t.material.scatter(r, &t);
             match scattered {
                 Ok(scattered_ray) => {
-                    scattered_ray.0 * ray_color(scene, &scattered_ray.1, &bvh, depth - 1, t.t)
+                    scattered_ray.0 * ray_color(scene, &scattered_ray.1, &bvh, depth - 1)
                 }
                 Err(_) => Vec3A::new(0.0, 0.0, 0.0),
             }

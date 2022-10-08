@@ -26,7 +26,7 @@ impl AABB {
     }
 
     pub fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> bool {
-        self.hit_fast(r, t_min, t_max)
+        self.hit_faster(r)
     }
 
     pub fn hit_fast(&self, r: &Ray, t_min: f32, t_max: f32) -> bool {
@@ -40,6 +40,21 @@ impl AABB {
 
         let tmin = t_min.max(tsmaller.x.max(tsmaller.y.max(tsmaller.z)));
         let tmax = t_max.min(tbigger.x.min(tbigger.y.min(tbigger.z)));
+
+        tmin < tmax
+    }
+
+    pub fn hit_faster(&self, r: &Ray) -> bool {
+        let inv_d = 1.0 / r.direction;
+
+        let ray_min = (self.minimum - r.origin) * inv_d;
+        let ray_max = (self.maximum - r.origin) * inv_d;
+
+        let tsmaller = ray_min.min(ray_max);
+        let tbigger = ray_min.max(ray_max);
+
+        let tmin = tsmaller.x.max(tsmaller.y.max(tsmaller.z));
+        let tmax = tbigger.x.min(tbigger.y.min(tbigger.z));
 
         tmin < tmax
     }

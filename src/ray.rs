@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use glam::Vec3A;
 
-use crate::{hittable::Hittable, material::Material, scene::Scene};
+use crate::{aabb::AABB, hittable::Hittable, material::Material, scene::Scene};
 
 #[derive(Clone)]
 pub struct HitRecord {
@@ -43,5 +43,20 @@ impl Ray {
         }
 
         closest_hit
+    }
+
+    pub fn aabb_intersect(&self, aabb: AABB) -> bool {
+        let inv_d = 1.0 / self.direction;
+
+        let ray_min = (aabb.minimum - self.origin) * inv_d;
+        let ray_max = (aabb.maximum - self.origin) * inv_d;
+
+        let tsmaller = ray_min.min(ray_max);
+        let tbigger = ray_min.max(ray_max);
+
+        let tmin = tsmaller.x.max(tsmaller.y.max(tsmaller.z));
+        let tmax = tbigger.x.min(tbigger.y.min(tbigger.z));
+
+        tmin < tmax
     }
 }

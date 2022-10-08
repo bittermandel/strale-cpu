@@ -52,7 +52,7 @@ impl Scene {
         let mut first_box = true;
 
         for object in &self.objects {
-            let temp_box = object.bounding_box(time0, time1);
+            let temp_box = object.bounding_box();
 
             temp_box?;
 
@@ -84,10 +84,10 @@ impl Scene {
             material: ground_material,
         }));
 
-        let seed = get_seed(32);
+        let seed = "D4en7gYSdsaaOzPd58BfTa79ugWvcEm5"; //get_seed(32);
 
         //let mut rng: SmallRng = Seeder::from(seed.clone()).make_rng();
-        let mut rng: SmallRng = Seeder::from("D4en7gYSdsaaOzPd58BfTa79ugWvcEm5").make_rng();
+        let mut rng: SmallRng = Seeder::from(seed).make_rng();
         println!("{}", seed);
 
         for a in -11..11 {

@@ -17,15 +17,13 @@ pub struct Bvh {
 }
 
 impl Bvh {
-    pub fn new(mut objects: Vec<Box<dyn Hittable>>, time0: f32, time1: f32) -> Self {
+    pub fn new(mut objects: Vec<Box<dyn Hittable>>) -> Self {
         fn box_compare(
-            time0: f32,
-            time1: f32,
             axis: usize,
         ) -> impl FnMut(&Box<dyn Hittable>, &Box<dyn Hittable>) -> Ordering {
             move |a, b| {
-                let a_bbox = a.bounding_box(time0, time1);
-                let b_bbox = b.bounding_box(time0, time1);
+                let a_bbox = a.bounding_box();
+                let b_bbox = b.bounding_box();
                 if let (Some(a), Some(b)) = (a_bbox, b_bbox) {
                     let ac = a.minimum[axis] + a.maximum[axis];
                     let bc = b.minimum[axis] + b.maximum[axis];
@@ -36,11 +34,11 @@ impl Bvh {
             }
         }
 
-        fn axis_range(objects: &[Box<dyn Hittable>], time0: f32, time1: f32, axis: usize) -> f32 {
+        fn axis_range(objects: &[Box<dyn Hittable>], axis: usize) -> f32 {
             let (min, max) = objects
                 .iter()
                 .fold((f32::MAX, f32::MIN), |(bmin, bmax), hit| {
-                    if let Some(aabb) = hit.bounding_box(time0, time1) {
+                    if let Some(aabb) = hit.bounding_box() {
                         (bmin.min(aabb.minimum[axis]), bmax.max(aabb.maximum[axis]))
                     } else {
                         (bmin, bmax)
@@ -49,22 +47,21 @@ impl Bvh {
             max - min
         }
 
-        let mut axis_ranges: Vec<(usize, f32)> = (0..3)
-            .map(|a| (a, axis_range(&objects, time0, time1, a)))
-            .collect();
+        let mut axis_ranges: Vec<(usize, f32)> =
+            (0..3).map(|a| (a, axis_range(&objects, a))).collect();
 
         axis_ranges.sort_unstable_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
         let axis = axis_ranges[0].0;
 
-        objects.sort_unstable_by(box_compare(time0, time1, axis));
+        objects.sort_unstable_by(box_compare(axis));
         let len = objects.len();
 
         match len {
             0 => panic!["no elements in scene"],
             1 => {
                 let leaf = objects.pop().unwrap();
-                if let Some(bbox) = leaf.bounding_box(time0, time1) {
+                if let Some(bbox) = leaf.bounding_box() {
                     Bvh {
                         tree: BvhNode::Leaf(leaf),
                         bbox,
@@ -74,8 +71,8 @@ impl Bvh {
                 }
             }
             _ => {
-                let right = Bvh::new(objects.drain(len / 2..).collect(), time0, time1);
-                let left = Bvh::new(objects, time0, time1);
+                let right = Bvh::new(objects.drain(len / 2..).collect());
+                let left = Bvh::new(objects);
                 let bbox = AABB::join(&left.bbox, &right.bbox);
                 Bvh {
                     tree: BvhNode::Branch {
@@ -131,7 +128,7 @@ impl Hittable for Bvh {
         }
     }
 
-    fn bounding_box(&self, _time0: f32, _time1: f32) -> Option<AABB> {
+    fn bounding_box(&self) -> Option<AABB> {
         Some(self.bbox)
     }
 }
