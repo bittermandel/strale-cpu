@@ -1,6 +1,4 @@
-use std::{f32::consts::PI};
-
-
+use std::f32::consts::PI;
 
 use crate::{aabb::AABB, hittable::Hittable};
 
@@ -8,7 +6,7 @@ pub fn degrees_to_radians(degrees: f32) -> f32 {
     degrees * PI / 180.0
 }
 
-pub fn joint_aabb(indices: &[usize], shapes: &Vec<Box<dyn Hittable>>) -> AABB {
+pub fn joint_aabb(indices: &[usize], shapes: &[Box<dyn Hittable>]) -> AABB {
     let mut aabb = AABB::empty();
 
     for index in indices {
@@ -18,7 +16,7 @@ pub fn joint_aabb(indices: &[usize], shapes: &Vec<Box<dyn Hittable>>) -> AABB {
     aabb
 }
 
-pub fn joint_aabb_from_shapes(shapes: &Vec<Box<dyn Hittable>>) -> AABB {
+pub fn joint_aabb_from_shapes(shapes: &[Box<dyn Hittable>]) -> AABB {
     let mut aabb = AABB::empty();
 
     for shape in shapes {

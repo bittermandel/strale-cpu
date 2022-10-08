@@ -1,16 +1,9 @@
 #![cfg_attr(feature = "bench", feature(test))]
 
-
 use bvh2::BVH;
 use glam::Vec3A;
 use rayon::prelude::*;
-use std::{
-    fs::File,
-    io::BufWriter,
-    path::Path,
-    time::{Instant},
-    vec,
-};
+use std::{fs::File, io::BufWriter, path::Path, time::Instant, vec};
 
 use camera::Camera;
 use indicatif::ProgressBar;

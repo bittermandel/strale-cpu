@@ -1,11 +1,6 @@
-use std::{cmp::Ordering};
+use std::cmp::Ordering;
 
-use crate::{
-    aabb::AABB,
-    hittable::Hittable,
-    ray::{Ray},
-    util::{joint_aabb},
-};
+use crate::{aabb::AABB, hittable::Hittable, ray::Ray, util::joint_aabb};
 
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
@@ -198,11 +193,7 @@ impl<'a> BVH {
         BVH { nodes }
     }
 
-    pub fn traverse(
-        &'a self,
-        r: &Ray,
-        shapes: &'a Vec<Box<dyn Hittable>>,
-    ) -> Vec<&Box<dyn Hittable>> {
+    pub fn traverse(&'a self, r: &Ray, shapes: &'a [Box<dyn Hittable>]) -> Vec<&Box<dyn Hittable>> {
         let mut indices = Vec::new();
 
         BVHNode::traverse(r, &self.nodes, 0, &mut indices);
