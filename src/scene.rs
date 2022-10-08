@@ -42,18 +42,18 @@ impl Scene {
     }
 
     #[allow(dead_code)]
-    pub fn bounding_box(&self, _time0: f32, _time1: f32) -> Option<AABB> {
+    pub fn bounding_box(&self, _time0: f32, _time1: f32) -> AABB {
         if self.objects.is_empty() {
-            return None;
+            return AABB::empty();
         }
 
-        let mut output_box: Option<AABB> = None;
+        let mut output_box = AABB::empty();
         let mut first_box = true;
 
         for object in &self.objects {
             let temp_box = object.bounding_box();
 
-            temp_box?;
+            temp_box;
 
             if first_box {
                 output_box = temp_box;
@@ -89,8 +89,8 @@ impl Scene {
         let mut rng: SmallRng = Seeder::from(seed).make_rng();
         println!("{}", seed);
 
-        for a in -11..11 {
-            for b in -11..11 {
+        for a in -111..111 {
+            for b in -111..111 {
                 let choose_mat: f32 = rng.gen::<f32>();
 
                 let center = Vec3A::new(

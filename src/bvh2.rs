@@ -1,6 +1,38 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, time::Instant};
 
-use crate::{aabb::AABB, hittable::Hittable, ray::Ray, util::joint_aabb};
+use crate::{
+    aabb::{self, AABB},
+    hittable::Hittable,
+    ray::Ray,
+    util::{concatenate_vectors, joint_aabb},
+};
+
+#[derive(Copy, Clone, Debug)]
+struct Bucket {
+    pub size: usize,
+    pub aabb: AABB,
+}
+
+impl Bucket {
+    pub fn empty() -> Bucket {
+        Bucket {
+            size: 0,
+            aabb: AABB::empty(),
+        }
+    }
+
+    pub fn add_aabb(&mut self, aabb: &AABB) {
+        self.size += 1;
+        self.aabb = self.aabb.join(aabb);
+    }
+
+    pub fn join_bucket(a: Bucket, b: &Bucket) -> Bucket {
+        Bucket {
+            size: a.size + b.size,
+            aabb: a.aabb.join(&b.aabb),
+        }
+    }
+}
 
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug)]
@@ -35,13 +67,9 @@ impl BVHNode {
             move |a, b| {
                 let a_bbox = shapes[*a].bounding_box();
                 let b_bbox = shapes[*b].bounding_box();
-                if let (Some(a), Some(b)) = (a_bbox, b_bbox) {
-                    let ac = a.minimum[axis] + a.maximum[axis];
-                    let bc = b.minimum[axis] + b.maximum[axis];
-                    ac.partial_cmp(&bc).unwrap()
-                } else {
-                    panic!("no bounding box in bvh node")
-                }
+                let ac = a_bbox.minimum[axis] + a_bbox.maximum[axis];
+                let bc = b_bbox.minimum[axis] + b_bbox.maximum[axis];
+                ac.partial_cmp(&bc).unwrap()
             }
         }
 
@@ -49,11 +77,8 @@ impl BVHNode {
             let (min, max) = indices
                 .iter()
                 .fold((f32::MAX, f32::MIN), |(bmin, bmax), hit| {
-                    if let Some(aabb) = shapes[*hit].bounding_box() {
-                        (bmin.min(aabb.minimum[axis]), bmax.max(aabb.maximum[axis]))
-                    } else {
-                        (bmin, bmax)
-                    }
+                    let aabb = shapes[*hit].bounding_box();
+                    (bmin.min(aabb.minimum[axis]), bmax.max(aabb.maximum[axis]))
                 });
             max - min
         }
@@ -109,12 +134,10 @@ impl BVHNode {
 
     pub fn build_sah(
         shapes: &Vec<Box<dyn Hittable>>,
-        indices: &mut [usize],
+        indices: &[usize],
         nodes: &mut Vec<BVHNode>,
         parent_index: usize,
         depth: u32,
-        _time0: f32,
-        _time1: f32,
     ) -> usize {
         let len = indices.len();
 
@@ -131,6 +154,19 @@ impl BVHNode {
             return node_index;
         }
 
+        fn sum_aabbs(aabb_bounds: AABB, centroid_bounds: AABB, shape_aabb: &AABB) -> (AABB, AABB) {
+            let center = &shape_aabb.center();
+            (aabb_bounds.join(shape_aabb), centroid_bounds.grow(center))
+        }
+
+        let mut aabb_bounds = AABB::empty();
+        let mut centroid_bounds = AABB::empty();
+
+        for index in indices {
+            (aabb_bounds, centroid_bounds) =
+                sum_aabbs(aabb_bounds, centroid_bounds, &shapes[*index].bounding_box())
+        }
+
         let node_index = nodes.len();
         nodes.push(BVHNode::Leaf {
             depth,
@@ -138,18 +174,68 @@ impl BVHNode {
             shape_index: 0,
         });
 
-        let (left_indices, right_indices) = indices.split_at_mut(indices.len() / 2);
+        let split_axis = centroid_bounds.largest_axis();
+        let split_axis_size =
+            centroid_bounds.maximum[split_axis] - centroid_bounds.minimum[split_axis];
 
-        let left = BVHNode::build(shapes, left_indices, nodes, node_index, depth + 1);
-        let right = BVHNode::build(shapes, right_indices, nodes, node_index, depth + 1);
+        const NUM_BUCKETS: usize = 6;
+
+        let mut buckets = [Bucket::empty(); NUM_BUCKETS];
+        let mut bucket_assignments: [Vec<usize>; NUM_BUCKETS] = Default::default();
+
+        for idx in indices {
+            let shape = &shapes[*idx];
+            let shape_aabb = shape.bounding_box();
+            let shape_center = shape_aabb.center();
+
+            let relative_pos =
+                (shape_center[split_axis] - centroid_bounds.minimum[split_axis]) / split_axis_size;
+
+            let bucket_num = (relative_pos * (NUM_BUCKETS as f32 - 0.01)) as usize;
+
+            buckets[bucket_num].add_aabb(&shape_aabb);
+            bucket_assignments[bucket_num].push(*idx);
+        }
+
+        let mut min_bucket = 0;
+        let mut min_cost = f32::INFINITY;
+        let mut child_l_aabb = AABB::empty();
+        let mut child_r_aabb = AABB::empty();
+
+        for i in 0..(NUM_BUCKETS - 1) {
+            let (l_buckets, r_buckets) = buckets.split_at(i + 1);
+
+            let child_l = l_buckets.iter().fold(Bucket::empty(), Bucket::join_bucket);
+            let child_r = r_buckets.iter().fold(Bucket::empty(), Bucket::join_bucket);
+
+            let cost = (child_l.size as f32 * child_l.aabb.surface_area()
+                + child_r.size as f32 * child_r.aabb.surface_area())
+                / aabb_bounds.surface_area();
+
+            if cost < min_cost {
+                min_bucket = i;
+                min_cost = cost;
+                child_l_aabb = child_l.aabb;
+                child_r_aabb = child_r.aabb;
+            }
+        }
+
+        let (l_assignments, r_assignments) = bucket_assignments.split_at_mut(min_bucket + 1);
+        let child_l_indices = concatenate_vectors(l_assignments);
+        let child_r_indices = concatenate_vectors(r_assignments);
+
+        let child_l_index =
+            BVHNode::build_sah(shapes, &child_l_indices, nodes, node_index, depth + 1);
+        let child_r_index =
+            BVHNode::build_sah(shapes, &child_r_indices, nodes, node_index, depth + 1);
 
         nodes[node_index] = BVHNode::Node {
             depth,
+            child_l_aabb,
+            child_l_index,
+            child_r_aabb,
+            child_r_index,
             parent_index,
-            child_l_index: left,
-            child_l_aabb: joint_aabb(left_indices, shapes),
-            child_r_index: right,
-            child_r_aabb: joint_aabb(right_indices, shapes),
         };
 
         node_index
@@ -183,12 +269,21 @@ pub struct BVH {
 }
 
 impl<'a> BVH {
-    pub fn build(shapes: &mut Vec<Box<dyn Hittable>>) -> Self {
+    pub fn build(shapes: &Vec<Box<dyn Hittable>>) -> Self {
+        let now = Instant::now();
+
         let mut indices = (0..shapes.len()).collect::<Vec<usize>>();
 
         let mut nodes = Vec::new();
 
-        BVHNode::build(shapes, &mut indices, &mut nodes, 0, 0);
+        //BVHNode::build(shapes, &mut indices, &mut nodes, 0, 0);
+        BVHNode::build_sah(shapes, &indices, &mut nodes, 0, 0);
+
+        println!(
+            "BVH built in {:?} using {} shapes",
+            now.elapsed(),
+            shapes.len()
+        );
 
         BVH { nodes }
     }
@@ -202,6 +297,21 @@ impl<'a> BVH {
             .iter()
             .map(|index| &shapes[*index])
             .collect::<Vec<_>>()
+    }
+
+    pub fn total_surface_area(&self) -> f32 {
+        let total = self.nodes.iter().fold(0.0, |total, node| match node {
+            BVHNode::Node {
+                child_l_aabb,
+                child_r_aabb,
+                ..
+            } => {
+                let aabb = AABB::join(child_l_aabb, child_r_aabb);
+                total + aabb.surface_area()
+            }
+            _ => total,
+        });
+        total
     }
 
     pub fn pretty_print(&self) {
@@ -231,5 +341,6 @@ impl<'a> BVH {
             }
         }
         print_node(nodes, 0);
+        println!("total surface area: {}", self.total_surface_area());
     }
 }

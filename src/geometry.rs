@@ -68,10 +68,10 @@ impl Hittable for Sphere {
 
         Some(closest_hit)
     }
-    fn bounding_box(&self) -> Option<AABB> {
-        Some(AABB {
+    fn bounding_box(&self) -> AABB {
+        AABB {
             minimum: self.position - Vec3A::new(self.radius, self.radius, self.radius),
             maximum: self.position + Vec3A::new(self.radius, self.radius, self.radius),
-        })
+        }
     }
 }

@@ -1,4 +1,4 @@
-use std::{cmp::Ordering};
+use std::cmp::Ordering;
 
 use crate::{
     aabb::AABB,
@@ -24,13 +24,9 @@ impl Bvh {
             move |a, b| {
                 let a_bbox = a.bounding_box();
                 let b_bbox = b.bounding_box();
-                if let (Some(a), Some(b)) = (a_bbox, b_bbox) {
-                    let ac = a.minimum[axis] + a.maximum[axis];
-                    let bc = b.minimum[axis] + b.maximum[axis];
-                    ac.partial_cmp(&bc).unwrap()
-                } else {
-                    panic!("no bounding box in bvh node")
-                }
+                let ac = a_bbox.minimum[axis] + a_bbox.maximum[axis];
+                let bc = b_bbox.minimum[axis] + b_bbox.maximum[axis];
+                ac.partial_cmp(&bc).unwrap()
             }
         }
 
@@ -38,11 +34,10 @@ impl Bvh {
             let (min, max) = objects
                 .iter()
                 .fold((f32::MAX, f32::MIN), |(bmin, bmax), hit| {
-                    if let Some(aabb) = hit.bounding_box() {
-                        (bmin.min(aabb.minimum[axis]), bmax.max(aabb.maximum[axis]))
-                    } else {
-                        (bmin, bmax)
-                    }
+                    (
+                        bmin.min(hit.bounding_box().minimum[axis]),
+                        bmax.max(hit.bounding_box().maximum[axis]),
+                    )
                 });
             max - min
         }
@@ -61,13 +56,9 @@ impl Bvh {
             0 => panic!["no elements in scene"],
             1 => {
                 let leaf = objects.pop().unwrap();
-                if let Some(bbox) = leaf.bounding_box() {
-                    Bvh {
-                        tree: BvhNode::Leaf(leaf),
-                        bbox,
-                    }
-                } else {
-                    panic!("no bounding box in bvh node");
+                Bvh {
+                    bbox: leaf.bounding_box(),
+                    tree: BvhNode::Leaf(leaf),
                 }
             }
             _ => {
@@ -128,7 +119,7 @@ impl Hittable for Bvh {
         }
     }
 
-    fn bounding_box(&self) -> Option<AABB> {
-        Some(self.bbox)
+    fn bounding_box(&self) -> AABB {
+        self.bbox
     }
 }
