@@ -1,19 +1,20 @@
+use glam::Vec3A;
 use rand::{thread_rng, Rng};
 
 use crate::{
     ray::Ray,
     util::degrees_to_radians,
-    vec3::{random_in_unit_disk, unit_vector, Vec3},
+    vec3::{random_in_unit_disk, unit_vector},
 };
 
 pub struct Camera {
-    pub origin: Vec3,
-    pub lower_left_corner: Vec3,
-    pub horizontal: Vec3,
-    pub vertical: Vec3,
-    pub u: Vec3,
-    pub v: Vec3,
-    pub w: Vec3,
+    pub origin: Vec3A,
+    pub lower_left_corner: Vec3A,
+    pub horizontal: Vec3A,
+    pub vertical: Vec3A,
+    pub u: Vec3A,
+    pub v: Vec3A,
+    pub w: Vec3A,
     pub lens_radius: f32,
     pub _time0: f32,
     pub _time1: f32,
@@ -21,9 +22,9 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(
-        lookfrom: Vec3,
-        lookat: Vec3,
-        vup: Vec3,
+        lookfrom: Vec3A,
+        lookat: Vec3A,
+        vup: Vec3A,
         vfov: f32,
         aspect_ratio: f32,
         aperture: f32,
@@ -63,7 +64,7 @@ impl Camera {
 
     pub fn get_ray(&self, s: f32, t: f32) -> Ray {
         let rd = self.lens_radius * random_in_unit_disk();
-        let offset = self.u * rd.x() + self.v * rd.y();
+        let offset = self.u * rd.x + self.v * rd.y;
 
         let mut rng = thread_rng();
 

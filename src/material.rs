@@ -1,13 +1,14 @@
+use glam::Vec3A;
 use rand::Rng;
 
 use crate::{
     ray::{HitRecord, Ray},
     texture::Texture,
-    vec3::{random_in_unit_sphere, random_unit_vector, refract, unit_vector, Vec3},
+    vec3::{near_zero, random_in_unit_sphere, random_unit_vector, refract, unit_vector},
 };
 
 pub trait Material: Send + Sync {
-    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Result<(Vec3, Ray), ()>;
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Result<(Vec3A, Ray), ()>;
 }
 
 pub struct Lambertian {
@@ -15,11 +16,11 @@ pub struct Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Result<(Vec3, Ray), ()> {
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Result<(Vec3A, Ray), ()> {
         let mut scatter_direction = rec.normal + random_unit_vector();
 
         // Catch degenerate scatter direction
-        if scatter_direction.near_zero() {
+        if near_zero(scatter_direction) {
             scatter_direction = rec.normal;
         }
 
@@ -33,13 +34,14 @@ impl Material for Lambertian {
 }
 
 pub struct Metal {
-    pub albedo: Vec3,
+    pub albedo: Vec3A,
     pub fuzz: f32,
 }
 
 impl Material for Metal {
-    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Result<(Vec3, Ray), ()> {
-        let reflected = unit_vector(ray.direction).reflect(rec.normal);
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Result<(Vec3A, Ray), ()> {
+        let uvec = unit_vector(ray.direction);
+        let reflected = uvec - (2.0 * uvec.dot(rec.normal)) * rec.normal;
 
         let scattered = Ray {
             direction: reflected + self.fuzz * random_in_unit_sphere(),
@@ -68,7 +70,7 @@ impl Dialectric {
 }
 
 impl Material for Dialectric {
-    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Result<(Vec3, Ray), ()> {
+    fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Result<(Vec3A, Ray), ()> {
         let refraction_ratio = if rec.front_face {
             1.0 / self.ir
         } else {
@@ -86,7 +88,7 @@ impl Material for Dialectric {
 
         let direction =
             if cannot_refract || Dialectric::reflectance(cos_theta, refraction_ratio) > rng.gen() {
-                unit_direction.reflect(rec.normal)
+                unit_direction - (2.0 * unit_direction.dot(rec.normal)) * rec.normal
             } else {
                 refract(unit_direction, rec.normal, refraction_ratio)
             };
@@ -97,7 +99,7 @@ impl Material for Dialectric {
             time: ray.time,
         };
         {
-            Ok((Vec3::new(1.0, 1.0, 1.0), scattered))
+            Ok((Vec3A::new(1.0, 1.0, 1.0), scattered))
         }
     }
 }

@@ -6,10 +6,21 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+glam = "0.21.3"
 indicatif = "0.17.0"
 png = "0.17"
-rand = "0.8.5"
+rand = {version="0.8.5", features=["small_rng"]}
+rand_seeder = "0.2.3"
 rayon = "1.5"
 
-[profile.bench]
+[features]
+bench = []
+
+[profile.release]
+lto = true
+codegen-units = 1
 debug = true
+
+[profile.bench]
+lto = true
+codegen-units = 1

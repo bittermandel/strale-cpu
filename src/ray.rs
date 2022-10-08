@@ -1,11 +1,13 @@
 use std::sync::Arc;
 
-use crate::{material::Material, scene::Scene, vec3::Vec3};
+use glam::Vec3A;
+
+use crate::{aabb::AABB, hittable::Hittable, material::Material};
 
 #[derive(Clone)]
 pub struct HitRecord {
-    pub p: Vec3,
-    pub normal: Vec3,
+    pub p: Vec3A,
+    pub normal: Vec3A,
     pub t: f32,
     pub u: f32,
     pub v: f32,
@@ -14,21 +16,21 @@ pub struct HitRecord {
 }
 
 pub struct Ray {
-    pub origin: Vec3,
-    pub direction: Vec3,
+    pub origin: Vec3A,
+    pub direction: Vec3A,
     pub time: f32,
 }
 
 impl Ray {
-    pub fn at(&self, t: f32) -> Vec3 {
+    pub fn at(&self, t: f32) -> Vec3A {
         self.origin + self.direction * t
     }
 
-    pub fn hit(&self, scene: &Scene) -> Option<HitRecord> {
+    pub fn hit(&self, objects: Vec<&Box<dyn Hittable>>) -> Option<HitRecord> {
         let mut closest_hit_distance: f32 = f32::MAX;
         let mut closest_hit: Option<HitRecord> = None;
 
-        for object in scene.objects.iter() {
+        for object in objects.iter() {
             match object.hit(self, 0.001, closest_hit_distance) {
                 Some(rec) => {
                     if rec.t < closest_hit_distance {
@@ -41,5 +43,20 @@ impl Ray {
         }
 
         closest_hit
+    }
+
+    pub fn aabb_intersect(&self, aabb: AABB) -> bool {
+        let inv_d = 1.0 / self.direction;
+
+        let ray_min = (aabb.minimum - self.origin) * inv_d;
+        let ray_max = (aabb.maximum - self.origin) * inv_d;
+
+        let tsmaller = ray_min.min(ray_max);
+        let tbigger = ray_min.max(ray_max);
+
+        let tmin = tsmaller.x.max(tsmaller.y.max(tsmaller.z));
+        let tmax = tbigger.x.min(tbigger.y.min(tbigger.z));
+
+        tmin < tmax
     }
 }
