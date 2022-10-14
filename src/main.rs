@@ -1,6 +1,5 @@
 #![cfg_attr(feature = "bench", feature(test))]
 
-use bvh2::BVH;
 use glam::Vec3A;
 use rayon::prelude::*;
 use std::{fs::File, io::BufWriter, path::Path, time::Instant, vec};
@@ -12,10 +11,11 @@ use ray::Ray;
 use scene::Scene;
 use vec3::unit_vector;
 
+use crate::bvh::sah::BVH;
+
 mod aabb;
 mod axis;
 mod bvh;
-mod bvh2;
 mod camera;
 mod geometry;
 mod hittable;
@@ -33,8 +33,8 @@ extern crate test;
 #[cfg(test)]
 mod tests;
 
-const MAX_DEPTH: u32 = 16;
-const SAMPLES_PER_PIXEL: u32 = 100;
+const MAX_DEPTH: u32 = 4;
+const SAMPLES_PER_PIXEL: u32 = 40;
 
 fn main() {
     let path = Path::new("image.png");
@@ -43,7 +43,7 @@ fn main() {
 
     let aspect_ratio = 3.0 / 2.0;
 
-    let image_width: u32 = 1080;
+    let image_width: u32 = 800;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let lookfrom = Vec3A::new(13.0, 2.0, 3.0);
@@ -76,9 +76,12 @@ fn main() {
     let bar = ProgressBar::new((image_height * image_width).into());
 
     let mut scene = Scene::new();
-    scene.randomize();
+    //let mut scene = Scene::from_obj("bunny.obj".to_string());
 
-    let bvh = bvh2::BVH::build(&scene.objects);
+    scene.randomize_bunnies();
+
+    let bvh = BVH::build(&scene.objects);
+    //bvh.pretty_print();
 
     let mut pixelvecs: Vec<Vec<Vec3A>> = vec![];
 

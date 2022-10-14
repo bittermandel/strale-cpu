@@ -1,7 +1,7 @@
-use glam::{Vec3A};
+use glam::Vec3A;
 use rand::Rng;
 
-
+#[derive(Debug)]
 pub struct Perlin {
     point_count: usize,
     ranfloat: Vec<f32>,
@@ -40,8 +40,7 @@ impl Perlin {
         let j = (4.0 * p.y) as i32 & 255;
         let k = (4.0 * p.z) as i32 & 255;
 
-        self.ranfloat[(self.perm_x[i as usize]
-            ^ self.perm_y[j as usize]
-            ^ self.perm_z[k as usize]) as usize]
+        self.ranfloat
+            [(self.perm_x[i as usize] ^ self.perm_y[j as usize] ^ self.perm_z[k as usize]) as usize]
     }
 }

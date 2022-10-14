@@ -1,14 +1,14 @@
 #![feature(test)]
 
+use glam::Vec3A;
+use rand::Rng;
 
-
-
-
+use crate::{camera::Camera, hittable::Hittable, ray::Ray, scene::Scene};
 
 /// Creates `n` deterministic random cubes. Returns the `Vec` of surface `Triangle`s.
 
 #[cfg(feature = "bench")]
-pub fn intersect_list(objects: Vec<Box<(dyn Hittable)>>, b: &mut ::test::Bencher) {
+pub fn traverse(bvh: BVH, shapes: &[Box<dyn Hittable>], b: &mut ::test::Bencher) {
     let aspect_ratio = 3.0 / 2.0;
 
     let image_width: f32 = 1080 as f32;
@@ -34,33 +34,7 @@ pub fn intersect_list(objects: Vec<Box<(dyn Hittable)>>, b: &mut ::test::Bencher
 
     let ray: Ray = camera.get_ray(u, v);
 
-    b.iter(|| {
-        // Iterate over the list of triangles.
-        for object in &objects {
-            object.hit(&ray, 0.001, f32::MAX);
-        }
-    });
-}
-
-#[cfg(feature = "bench")]
-#[bench]
-/// Benchmark intersecting a random scene directly.
-fn bench_random_scene(b: &mut ::test::Bencher) {
-    let mut scene = Scene::new();
-    scene.randomize();
-    intersect_list(scene.objects, b);
-}
-
-#[cfg(feature = "bench")]
-#[bench]
-/// Benchmark intersecting a random scene with a bvh.
-fn bench_random_scene_with_bvh(b: &mut ::test::Bencher) {
-    use crate::bvh::Bvh;
-
-    let mut scene = Scene::new();
-    scene.randomize();
-    scene.objects = vec![Box::new(Bvh::new(scene.objects, 0.0, f32::MAX))];
-    intersect_list(scene.objects, b);
+    bvh.traverse(&ray, shapes);
 }
 
 #[cfg(feature = "bench")]
@@ -68,10 +42,11 @@ fn bench_random_scene_with_bvh(b: &mut ::test::Bencher) {
 /// Benchmark creating a random scene and BVH.
 fn create_scene_and_bvh(b: &mut ::test::Bencher) {
     use crate::bvh::Bvh;
+    let mut scene = Scene::new();
+    scene.randomize();
+    let bvh = BVH::build(&scene.objects);
 
     b.iter(|| {
-        let mut scene = Scene::new();
-        scene.randomize();
-        Bvh::new(scene.objects, 0.0, f32::MAX);
+        traverse(bvh, &scene.objects, b);
     });
 }

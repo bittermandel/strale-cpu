@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use glam::Vec3A;
 use rand::Rng;
 
@@ -7,10 +9,11 @@ use crate::{
     vec3::{near_zero, random_in_unit_sphere, random_unit_vector, refract, unit_vector},
 };
 
-pub trait Material: Send + Sync {
+pub trait Material: Send + Sync + Debug {
     fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Result<(Vec3A, Ray), ()>;
 }
 
+#[derive(Debug)]
 pub struct Lambertian {
     pub albedo: Box<dyn Texture + Send + Sync>,
 }
@@ -33,6 +36,7 @@ impl Material for Lambertian {
     }
 }
 
+#[derive(Debug)]
 pub struct Metal {
     pub albedo: Vec3A,
     pub fuzz: f32,
@@ -56,6 +60,7 @@ impl Material for Metal {
     }
 }
 
+#[derive(Debug)]
 pub struct Dialectric {
     pub ir: f32,
 }

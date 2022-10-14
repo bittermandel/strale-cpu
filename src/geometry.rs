@@ -17,8 +17,8 @@ pub struct Sphere {
 
 impl Sphere {
     pub fn get_sphere_uv(p: Vec3A) -> (f32, f32) {
-        let theta = -p.y.acos();
-        let phi = -p.z.atan2(p.x) + PI;
+        let theta = (-p.y).acos();
+        let phi = (-p.z).atan2(p.x) + PI;
 
         (phi / (2.0 * PI), theta / PI)
     }
@@ -73,5 +73,67 @@ impl Hittable for Sphere {
             minimum: self.position - Vec3A::new(self.radius, self.radius, self.radius),
             maximum: self.position + Vec3A::new(self.radius, self.radius, self.radius),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct Triangle {
+    pub vertex0: Vec3A,
+    pub vertex1: Vec3A,
+    pub vertex2: Vec3A,
+    pub material: Arc<dyn Material>,
+}
+
+impl Hittable for Triangle {
+    fn hit(&self, r: &Ray, _t_min: f32, _t_max: f32) -> Option<HitRecord> {
+        let edge1 = self.vertex1 - self.vertex0;
+        let edge2 = self.vertex2 - self.vertex0;
+
+        let normal = edge1.cross(edge2);
+
+        let pvec = r.direction.cross(edge2);
+
+        let det = edge1.dot(pvec);
+        if det < f32::EPSILON {
+            // Parallel to the ray
+            return None;
+        }
+
+        let inv_det = 1.0 / det;
+
+        let tvec = r.origin - self.vertex0;
+
+        let u = tvec.dot(pvec) * inv_det;
+        if !(0.0..=1.0).contains(&u) {
+            // not within bounds of triangle
+            return None;
+        }
+
+        let qvec = tvec.cross(edge1);
+
+        let v = r.direction.dot(qvec) * inv_det;
+        if v < 0.0 || u + v > 1.0 {
+            // not within bounds of triangle
+            return None;
+        }
+
+        let t = edge2.dot(qvec) * inv_det;
+
+        return Some(HitRecord {
+            front_face: true,
+            u,
+            v,
+            p: pvec,
+            t,
+            normal,
+            material: self.material.clone(),
+        });
+    }
+
+    fn bounding_box(&self) -> AABB {
+        let minimum = self.vertex0.min(self.vertex1.min(self.vertex2));
+        let maximum = self.vertex0.max(self.vertex1.max(self.vertex2));
+
+        AABB::new(minimum, maximum)
     }
 }
