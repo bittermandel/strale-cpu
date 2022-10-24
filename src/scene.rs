@@ -257,6 +257,12 @@ impl Scene {
 
         let mut objects: Vec<Box<dyn Hittable>> = vec![];
 
+        objects.push(Box::new(Sphere {
+            position: Vec3A::new(0.0, -1000.0, 0.0),
+            radius: 1000.0,
+            material: ground_material,
+        }));
+
         let (models, materials) =
             tobj::load_obj("bunny.obj", &LoadOptions::default()).expect("Failed to load obj file");
 
@@ -270,8 +276,8 @@ impl Scene {
         let mut rng: SmallRng = Seeder::from(seed).make_rng();
         println!("{}", seed);
 
-        for a in -1..1 {
-            for b in -1..1 {
+        for a in -2..2 {
+            for b in -2..2 {
                 let choose_mat: f32 = rng.gen::<f32>();
 
                 let center = Vec3A::new(
@@ -298,7 +304,7 @@ impl Scene {
                             let positions: Vec<Vec3A> = mesh
                                 .positions
                                 .chunks(3)
-                                .map(|i| Vec3A::new(i[0], i[1], i[2]) + (center * 2.0))
+                                .map(|i| Vec3A::new(i[0], i[1], i[2]))
                                 .collect();
 
                             mesh.indices
@@ -306,9 +312,9 @@ impl Scene {
                                 .map(|i| {
                                     objects.push(Box::new(Triangle {
                                         material: bunny_material.clone(),
-                                        vertex0: positions[i[0] as usize] * 0.5,
-                                        vertex1: positions[i[1] as usize] * 0.5,
-                                        vertex2: positions[i[2] as usize] * 0.5,
+                                        vertex0: positions[i[0] as usize] * 0.005,
+                                        vertex1: positions[i[1] as usize] * 0.005,
+                                        vertex2: positions[i[2] as usize] * 0.005,
                                     }))
                                 })
                                 .for_each(drop);

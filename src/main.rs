@@ -33,8 +33,8 @@ extern crate test;
 #[cfg(test)]
 mod tests;
 
-const MAX_DEPTH: u32 = 4;
-const SAMPLES_PER_PIXEL: u32 = 40;
+const MAX_DEPTH: u32 = 16;
+const SAMPLES_PER_PIXEL: u32 = 80;
 
 fn main() {
     let path = Path::new("image.png");
@@ -43,7 +43,7 @@ fn main() {
 
     let aspect_ratio = 3.0 / 2.0;
 
-    let image_width: u32 = 800;
+    let image_width: u32 = 1040;
     let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
 
     let lookfrom = Vec3A::new(13.0, 2.0, 3.0);

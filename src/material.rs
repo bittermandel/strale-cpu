@@ -45,7 +45,7 @@ pub struct Metal {
 impl Material for Metal {
     fn scatter(&self, ray: &Ray, rec: &HitRecord) -> Result<(Vec3A, Ray), ()> {
         let uvec = unit_vector(ray.direction);
-        let reflected = uvec - (2.0 * uvec.dot(rec.normal)) * rec.normal;
+        let reflected = uvec - 2.0 * uvec.dot(rec.normal) * rec.normal;
 
         let scattered = Ray {
             direction: reflected + self.fuzz * random_in_unit_sphere(),
